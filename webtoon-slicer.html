@@ -21,8 +21,13 @@
       </div>
     </div>
     <div id="toolbox">
+      <div id="upload">
+        Upload raws:
+        <input id="upload-input" type="file" multiple accept="image/*">
+      </div>
       <div>
-        Filename prefix: <input type="text" value="page_" id="fn-prefix">
+        Output filename prefix:
+        <input type="text" value="page_" id="fn-prefix">
       </div>
       <div>
         <span>Page sizes:<span>
@@ -30,9 +35,6 @@
       </div>
       <div>
         <button id="download-button">Download!</button>
-      </div>
-      <div id="upload">
-        <input id="upload-input" type="file" multiple accept="image/*">
       </div>
       <div><pre id="log"></pre></div>
     </div>
