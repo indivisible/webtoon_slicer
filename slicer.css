@@ -1,0 +1,82 @@
+body {
+  background: white;
+  color: black;
+}
+
+.controls-row {
+  display: flex;
+  flex-direction: row;
+}
+
+.bad-size {
+  color: red;
+}
+
+.tooltip-before {
+  position: absolute;
+  bottom: 3em;
+}
+
+.tooltip-after {
+  position: absolute;
+  top: 3em;
+}
+
+.ruler {
+  position: absolute;
+  width: 100em;
+  height: 0;
+  top: 0;
+  right: 0;
+  border-top: 1px dashed black;
+}
+
+.noUi-tooltip {
+  z-index: 2;
+}
+
+button.delete-pin {
+  padding: 3px;
+  border: 1px solid black;
+}
+
+#slider-container {
+  padding-left: 8em;
+  padding-right: 1em;
+}
+
+#slider {
+  height: 100%;
+  width: 1em;
+}
+
+#toolbox {
+  width: 20em;
+  padding: 1em;
+  border: 2px solid black;
+  border-radius: 5px;
+  position: fixed;
+  top: 5em;
+  left: 35em;
+  bottom: 1em;
+  overflow: auto;
+}
+
+#outer-container {
+  border: 1px solid red;
+  width: 20em;
+  padding: 0;
+}
+
+#image-container {
+  padding: 0;
+  margin: 0;
+}
+
+#image-container img {
+  max-width: 100%;
+  padding: 0;
+  margin: 0;
+  display: block;
+}
+
