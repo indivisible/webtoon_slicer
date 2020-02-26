@@ -2,7 +2,7 @@ const TOO_BIG = 4500;
 const TOO_SMALL = 300;
 const IDEAL_SIZE = 3500;
 // how many pixels away will we add new pins
-const PIN_STEP = 50;
+const PIN_STEP = 100;
 const DEFAULT_FILENAME_PREFIX = 'page_';
 
 var images = [];
@@ -307,7 +307,12 @@ document.addEventListener('DOMContentLoaded', () => {
   imageContainer = document.querySelector('#image-container');
   document.querySelector('#download-button').addEventListener('click', () => {
     renderSlices();
-  })
+  });
+  document.querySelector('#show-log').addEventListener('click', (e) => {
+    document.querySelector('#log').classList.remove('hidden');
+    e.preventDefault();
+    return false;
+  });
   let uploadInput = document.querySelector('#upload-input');
   uploadInput.addEventListener('change', () => {
     let promises = [];
