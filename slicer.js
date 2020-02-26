@@ -62,8 +62,9 @@ function updateSliceSizes(positions){
   let frag = new DocumentFragment();
   let prevPosition = 0;
   let idx = 0;
-  let makeDownloader = (y1, y2, name) => {
+  let makeDownloader = (y1, y2, pageNum) => {
     return (e) => {
+      let name = sliceName(pageNum);
       downloadSlice(y1, y2, name);
       e.preventDefault();
       return false;
@@ -78,8 +79,7 @@ function updateSliceSizes(positions){
       li.setAttribute('class', 'bad-size');
     }
     let a = document.createElement('a');
-    let filename = sliceName(idx);
-    a.addEventListener('click', makeDownloader(prevPosition, position, filename));
+    a.addEventListener('click', makeDownloader(prevPosition, position, idx));
     a.setAttribute('href', '#');
     a.innerText = 'download';
     li.appendChild(a);
