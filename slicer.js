@@ -236,6 +236,37 @@ function renderSlice(y1, y2){
   return canvas.toDataURL('image/png');
 }
 
+function dataURLtoBlob(dataURI) {
+  // convert base64/URLEncoded data component to raw binary data held in a string
+  let byteString;
+  if (dataURI.split(',')[0].indexOf('base64') >= 0){
+    byteString = atob(dataURI.split(',')[1]);
+  }else{
+    byteString = unescape(dataURI.split(',')[1]);
+  }
+
+  // separate out the mime component
+  let mimeString = dataURI.split(',')[0].split(':')[1].split(';')[0];
+
+  // write the bytes of the string to a typed array
+  let ia = new Uint8Array(byteString.length);
+  for (let i = 0; i < byteString.length; i++) {
+    ia[i] = byteString.charCodeAt(i);
+  }
+
+  return new Blob([ia], {type:mimeString});
+}
+
+function downloadBlob(blob, name){
+  let a = document.createElement('a');
+  a.download = name;
+  a.href = window.URL.createObjectURL(blob);
+  a.dataset.downloadurl = [blob.type, a.download, a.href].join(':');
+  let e = document.createEvent('MouseEvents');
+  e.initMouseEvent('click', true, false, window, 0, 0, 0, 0, 0, false, false, false, false, 0, null);
+  a.dispatchEvent(e);
+}
+
 function downloadDataURL(url, name){
   let link = document.createElement('a');
   link.download = name;
@@ -246,7 +277,8 @@ function downloadDataURL(url, name){
 function downloadSlice(y1, y2, name){
   log(`downloadSlice(${y1}, ${y2}, ${name})`);
   let slice = renderSlice(y1, y2)
-  downloadDataURL(slice, name);
+  let blob = dataURLtoBlob(slice);
+  downloadBlob(blob, name);
 }
 
 function sliceName(idx){
