@@ -3,6 +3,10 @@ body {
   color: black;
 }
 
+#usage {
+  padding: 1em;
+}
+
 .controls-row {
   display: flex;
   flex-direction: row;
