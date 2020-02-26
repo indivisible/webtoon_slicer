@@ -64,7 +64,7 @@ button.delete-pin {
   border: 2px solid black;
   border-radius: 5px;
   position: fixed;
-  top: 5em;
+  top: 1em;
   left: 35em;
   bottom: 1em;
   overflow: auto;
