@@ -62,16 +62,29 @@ function updateSliceSizes(positions){
   let frag = new DocumentFragment();
   let prevPosition = 0;
   let idx = 0;
+  let makeDownloader = (y1, y2, name) => {
+    return (e) => {
+      downloadSlice(y1, y2, name);
+      e.preventDefault();
+      return false;
+    }
+  }
   for(let position of positions.concat(stripHeight)){
     idx++;
     let size = position - prevPosition;
-    prevPosition = position;
     let li = document.createElement('li');
-    li.innerText = `Page ${idx}: ${size}x${stripWidth}`
+    li.innerText = `Page ${idx}: ${size}x${stripWidth} `
     if(size < TOO_SMALL || size > TOO_BIG){
       li.setAttribute('class', 'bad-size');
     }
+    let a = document.createElement('a');
+    let filename = sliceName(idx);
+    a.addEventListener('click', makeDownloader(prevPosition, position, filename));
+    a.setAttribute('href', '#');
+    a.innerText = 'download';
+    li.appendChild(a);
     frag.appendChild(li);
+    prevPosition = position;
   }
   ul.innerHTML = '';
   ul.appendChild(frag);
@@ -230,22 +243,30 @@ function downloadDataURL(url, name){
   link.click();
 }
 
-function renderSlices(){
+function downloadSlice(y1, y2, name){
+  log(`downloadSlice(${y1}, ${y2}, ${name})`);
+  let slice = renderSlice(y1, y2)
+  downloadDataURL(slice, name);
+}
+
+function sliceName(idx){
   let prefixInput = document.querySelector('#fn-prefix');
   let prefix = prefixInput.value;
   if(!prefix)
     prefix = DEFAULT_FILENAME_PREFIX;
 
+  return prefix + idx.toString().padStart(2, '0') + '.png';
+}
+
+function renderSlices(){
   let positions = getPinPositions().concat(stripHeight);
   let start = 0;
   let slices = [];
   let num = 1;
   for(let y of positions){
-    let name = prefix + num.toString().padStart(2, '0') + '.png';
-    num += 1;
-    log(`dl ${name}`);
-    let slice = renderSlice(start, y)
-    downloadDataURL(slice, name);
+    let name = sliceName(num);
+    num++;
+    downloadSlice(start, y, name);
     start = y;
   }
 }
