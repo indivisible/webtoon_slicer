@@ -178,6 +178,9 @@ function getInitialPins(){
   for(let i=IDEAL_SIZE; i<=stripHeight; i+=IDEAL_SIZE){
     pins.push(i);
   }
+  if(pins.length == 0){
+    pins = [stripHeight];
+  }
   return pins;
 }
 
