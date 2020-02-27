@@ -73,7 +73,7 @@ function updateSliceSizes(positions){
     idx++;
     let size = position - prevPosition;
     let li = document.createElement('li');
-    li.innerText = `Page ${idx}: ${size}x${stripWidth} `
+    li.innerText = `${size}x${stripWidth} `
     if(size < TOO_SMALL || size > TOO_BIG){
       li.setAttribute('class', 'bad-size');
     }
