@@ -137,7 +137,7 @@ function decorateSliders(){
 
     // delete pin button
     let removeButton = document.createElement('button');
-    removeButton.setAttribute('class', 'delete-pin');
+    removeButton.setAttribute('class', 'delete-pin pin-button');
     extra.appendChild(removeButton);
     removeButton.innerText = '🗑️';
 
@@ -163,7 +163,7 @@ function decorateSliders(){
     // create add pin buttons
     for(const [parent, offset] of [[beforeDiv, -100], [afterDiv, 100]]){
       let addPinButton = document.createElement('button');
-      addPinButton.setAttribute('class', 'add-pin');
+      addPinButton.setAttribute('class', 'add-pin pin-button');
       addPinButton.innerText = '+';
       parent.appendChild(addPinButton);
       addPinButton.addEventListener('click', () => addPin(pos + offset));

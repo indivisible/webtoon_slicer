@@ -7,6 +7,10 @@ body {
   padding: 1em;
 }
 
+div.noUi-handle {
+  background: royalblue;
+}
+
 .hidden {
   display: none;
 }
@@ -23,11 +27,13 @@ body {
 .tooltip-before {
   position: absolute;
   bottom: 3em;
+  right: 0;
 }
 
 .tooltip-after {
   position: absolute;
   top: 3em;
+  right: 0;
 }
 
 .ruler {
@@ -43,7 +49,7 @@ body {
   z-index: 2;
 }
 
-button.delete-pin {
+.pin-button {
   padding: 3px;
   border: 1px solid black;
 }
