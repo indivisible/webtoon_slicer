@@ -37,8 +37,8 @@ function loadImages(urls){
   images = [];
   let promises = [];
   stripHeight = 0;
-  Promise.all(Array.from(urls).map(loadImage)).then((new_images) => {
-    images = new_images;
+  Promise.all(Array.from(urls).map(loadImage)).then((newImages) => {
+    images = newImages;
     stripHeight = images.reduce((a, b) => a + b.naturalHeight, 0);
     log(`loaded ${images.length} images, total ${stripHeight}px`);
     imageContainer.innerHTML = '';
