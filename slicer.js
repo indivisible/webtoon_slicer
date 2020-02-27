@@ -1,6 +1,6 @@
 const TOO_BIG = 4500;
 const TOO_SMALL = 300;
-const IDEAL_SIZE = 3500;
+const DEFAULT_PAGE_SIZE = 3500;
 // how many pixels away will we add new pins
 const PIN_STEP = 100;
 const DEFAULT_FILENAME_PREFIX = 'page_';
@@ -11,6 +11,14 @@ var stripWidth = 0;
 var imageContainer;
 var slider;
 const labelFormatter = {to: (num) => Math.floor(num).toString().replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1,')};
+
+function getPageSize(){
+  let input = document.querySelector('#page-size-input');
+  if(input.validity.valid){
+    return input.valueAsNumber;
+  }
+  return DEFAULT_PAGE_SIZE;
+}
 
 function log(value){
   console.log(value);
@@ -106,7 +114,6 @@ function deletePin(idx){
 }
 
 function addPin(newOffset){
-  log(`addPin(${newOffset})`);
   let positions = getPinPositions();
   if(newOffset <= 0 || newOffset >= stripHeight){
     return false;
@@ -175,16 +182,30 @@ function decorateSliders(){
 
 function getInitialPins(){
   let pins = [];
-  for(let i=IDEAL_SIZE; i<=stripHeight; i+=IDEAL_SIZE){
+  const pageSize = getPageSize();
+  for(let i=pageSize; i<=stripHeight; i+=pageSize){
     pins.push(i);
-  }
-  if(pins.length == 0){
-    pins = [stripHeight];
   }
   return pins;
 }
 
+function getImageBreaks(){
+  let breaks = [];
+  let pos = 0;
+  for(const img of images){
+    pos += img.naturalHeight;
+    breaks.push(pos);
+  }
+  // we don't want a pin at the end of the strip
+  if(breaks.length > 0)
+    breaks.pop();
+  return breaks;
+}
+
 function initSlider(pins){
+  if(pins.length == 0){
+    pins = [stripHeight];
+  }
   pins = pins.sort((a, b) => a - b);
   let sliderObj = null;
   if(slider){
@@ -315,6 +336,21 @@ document.addEventListener('DOMContentLoaded', () => {
     e.preventDefault();
     return false;
   });
+  document.querySelector('#reset-to-spacing').addEventListener('click', (e) => {
+    if(stripHeight > 0)
+      initSlider(getInitialPins());
+    e.preventDefault();
+    return false;
+  });
+  document.querySelector('#reset-to-breaks').addEventListener('click', (e) => {
+    if(stripHeight > 0)
+      initSlider(getImageBreaks());
+    e.preventDefault();
+    return false;
+  });
+  let pageSizeInput = document.querySelector('#page-size-input');
+  if(pageSizeInput.validity.valueMissing)
+    pageSizeInput.value = DEFAULT_PAGE_SIZE;
   let uploadInput = document.querySelector('#upload-input');
   uploadInput.addEventListener('change', () => {
     let promises = [];

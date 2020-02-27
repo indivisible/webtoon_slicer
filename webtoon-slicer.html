@@ -43,22 +43,35 @@
         <li><a href="#tab-pages">Pages</a></li>
       </ul>
       <div id="tab-settings">
-        <div id="upload">
-          <label>
-            Load raws:
-            <input id="upload-input" type="file" multiple accept="*/*">
-          </label>
-        </div>
         <div>
           <label>
             Output filename prefix:
             <input type="text" value="page_" id="fn-prefix">
           </label>
         </div>
+        <div>
+          <label>
+            Default page size:
+            <input type="number" min="1" required id="page-size-input"> px
+          </label>
+        </div>
+        <div id="upload">
+          <label>
+            Load raws:
+            <input id="upload-input" type="file" multiple accept="*/*">
+          </label>
+        </div>
       </div>
       <div id="tab-tools">
         <div>
-          <p><a href="#" id="show-log">Show debug log</a></p>
+          Reset pins to:
+          <ul>
+            <li><a href="#reset-to-spacing" id="reset-to-spacing">default page size</a></li>
+            <li><a href="#reset-to-breaks" id="reset-to-breaks">image boundaries</a></li>
+          </ul>
+        </div>
+        <div>
+          <p><a href="#show-log" id="show-log">Show debug log</a></p>
           <pre id="log" class="hidden">(empty)</pre>
         </div>
       </div>
