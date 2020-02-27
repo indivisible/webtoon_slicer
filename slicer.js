@@ -26,7 +26,6 @@ function error(value){
 function loadImage(src) {
   return new Promise((resolve, reject) => {
     let img = new Image();
-    //img.crossOrigin = "anonymous";
     img.addEventListener("load", () => resolve(img));
     img.addEventListener("error", err => reject(err));
     img.src = src;
@@ -216,7 +215,6 @@ function initSlider(pins){
 }
 
 function renderSlice(y1, y2){
-  //log(`renderSlice(${y1}, ${y2})`)
   let canvas = document.createElement('canvas');
   canvas.width = stripWidth;
   canvas.height = y2 - y1;
@@ -231,7 +229,6 @@ function renderSlice(y1, y2){
     if(offset > y2)
       break;
     ctx.drawImage(img, 0, offset - y1);
-    //log(`drawImage(${img}, 0, ${offset - y1})`)
   }
   return canvas.toDataURL('image/png');
 }
