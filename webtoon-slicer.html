@@ -6,6 +6,8 @@
     <link rel="stylesheet" href="slicer.css"/>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/noUiSlider/14.0.3/nouislider.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/noUiSlider/14.0.3/nouislider.min.css"/>
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/gh/cferdinandi/tabby@12/dist/css/tabby-ui.min.css">
+    <script src="https://cdn.jsdelivr.net/gh/cferdinandi/tabby@12/dist/js/tabby.polyfills.min.js"></script>
   </head>
   <body>
     <div>
@@ -35,27 +37,45 @@
       </div>
     </div>
     <div id="toolbox">
-      <a href="help.html">Help</a>
-      <div id="upload">
-        Load raws:
-        <input id="upload-input" type="file" multiple accept="*/*">
+      <ul data-tabs>
+        <li><a href="#tab-settings" data-tabby-default>Settings</a></li>
+        <li><a href="#tab-tools">Tools</a></li>
+        <li><a href="#tab-pages">Pages</a></li>
+      </ul>
+      <div id="tab-settings">
+        <div id="upload">
+          <label>
+            Load raws:
+            <input id="upload-input" type="file" multiple accept="*/*">
+          </label>
+        </div>
+        <div>
+          <label>
+            Output filename prefix:
+            <input type="text" value="page_" id="fn-prefix">
+          </label>
+        </div>
       </div>
-      <div>
-        Output filename prefix:
-        <input type="text" value="page_" id="fn-prefix">
+      <div id="tab-tools">
+        <div>
+          <p><a href="#" id="show-log">Show debug log</a></p>
+          <pre id="log" class="hidden">(empty)</pre>
+        </div>
       </div>
-      <div>
+      <div id="tab-pages">
         <span>Page sizes:</span>
-        <ul id="slice-sizes"></ul>
+        <ul id="slice-sizes">
+          <li>(no pages)</li>
+        </ul>
       </div>
       <div>
         <button id="download-button">Download all!</button>
       </div>
-      <div>
-        <p><a href="#" id="show-log">Show debug log</a></p>
-        <pre id="log" class="hidden">(empty)</pre>
-      </div>
+      <div><a href="help.html">Help</a></div>
     </div>
     <script src="slicer.js"></script>
+    <script>
+      var toolTabs = new Tabby('[data-tabs]');
+    </script>
   </body>
 </html>

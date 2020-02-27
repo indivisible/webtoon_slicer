@@ -212,6 +212,8 @@ function initSlider(pins){
     ruler.setAttribute('class', 'ruler');
     origin.appendChild(ruler);
   }
+
+  toolTabs.toggle('#tab-pages');
 }
 
 function renderSlice(y1, y2){

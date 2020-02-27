@@ -76,6 +76,10 @@ div.noUi-handle {
   overflow: auto;
 }
 
+#toolbox > div {
+  margin-bottom: 1em;
+}
+
 #outer-container {
   border: 1px solid red;
   width: 20em;
@@ -92,5 +96,15 @@ div.noUi-handle {
   padding: 0;
   margin: 0;
   display: block;
+}
+
+[role="tabpanel"] {
+    border: 1px solid #d3d3d2;
+    border-top-width: 0;
+    padding: 0.5em;
+}
+
+[role="tabpanel"] * {
+  margin-top: 0.5em;
 }
 
