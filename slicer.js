@@ -318,18 +318,19 @@ function sliceName(idx){
 
 function renderSlices(){
   $('#downloadingModal').modal('show');
-  let positions = getPinPositions().concat(stripHeight);
-  let start = 0;
-  let slices = [];
-  let num = 1;
-  for(let y of positions){
-    let name = sliceName(num);
-    num++;
-    downloadSlice(start, y, name);
-    start = y;
-  }
-  log('hide');
-  $('#downloadingModal').modal('hide');
+  setTimeout(() => {
+    let positions = getPinPositions().concat(stripHeight);
+    let start = 0;
+    let slices = [];
+    let num = 1;
+    for(let y of positions){
+      let name = sliceName(num);
+      num++;
+      downloadSlice(start, y, name);
+      start = y;
+    }
+    $('#downloadingModal').modal('hide');
+  }, 100);
 }
 
 document.addEventListener('DOMContentLoaded', () => {
