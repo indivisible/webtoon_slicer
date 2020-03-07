@@ -10,6 +10,7 @@ var stripHeight = 0;
 var stripWidth = 0;
 var imageContainer;
 var slider;
+var debugLog = "";
 const labelFormatter = {to: (num) => Math.floor(num).toString().replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1,')};
 
 function getPageSize(){
@@ -22,8 +23,9 @@ function getPageSize(){
 
 function log(value){
   console.log(value);
+  debugLog += '\n' + value;
   let elem = document.querySelector('#log');
-  elem.innerText += '\n' + value;
+  elem.innerText = debugLog;
 }
 
 function error(value){
@@ -61,6 +63,7 @@ function loadImages(urls){
       }
     }
     initSlider(getInitialPins());
+    $('#loadingModal').modal('hide');
   });
 }
 
@@ -237,7 +240,7 @@ function initSlider(pins){
     origin.appendChild(ruler);
   }
 
-  toolTabs.toggle('#tab-pages');
+  $('#pages-tab').tab('show');
 }
 
 function renderSlice(y1, y2){
@@ -314,6 +317,7 @@ function sliceName(idx){
 }
 
 function renderSlices(){
+  $('#downloadingModal').modal('show');
   let positions = getPinPositions().concat(stripHeight);
   let start = 0;
   let slices = [];
@@ -324,17 +328,14 @@ function renderSlices(){
     downloadSlice(start, y, name);
     start = y;
   }
+  log('hide');
+  $('#downloadingModal').modal('hide');
 }
 
 document.addEventListener('DOMContentLoaded', () => {
   imageContainer = document.querySelector('#image-container');
   document.querySelector('#download-button').addEventListener('click', () => {
     renderSlices();
-  });
-  document.querySelector('#show-log').addEventListener('click', (e) => {
-    document.querySelector('#log').classList.remove('hidden');
-    e.preventDefault();
-    return false;
   });
   document.querySelector('#reset-to-spacing').addEventListener('click', (e) => {
     if(stripHeight > 0)
@@ -353,6 +354,7 @@ document.addEventListener('DOMContentLoaded', () => {
     pageSizeInput.value = DEFAULT_PAGE_SIZE;
   let uploadInput = document.querySelector('#upload-input');
   uploadInput.addEventListener('change', () => {
+    $('#loadingModal').modal('show');
     let promises = [];
     for(let file of uploadInput.files){
       promises.push(new Promise((resolve, reject) => {
@@ -362,6 +364,6 @@ document.addEventListener('DOMContentLoaded', () => {
         reader.readAsDataURL(file);
       }));
     }
-    Promise.all(promises).then(loadImages)
+    Promise.all(promises).then(loadImages);
   })
 });

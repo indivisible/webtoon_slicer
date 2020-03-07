@@ -1,23 +1,14 @@
-body {
-  background: white;
-  color: black;
+#work-area {
+  overflow: hidden;
+  display: flex;
 }
 
-#usage {
+#placeholder-text {
   padding: 1em;
 }
 
 div.noUi-handle {
   background: royalblue;
-}
-
-.hidden {
-  display: none;
-}
-
-.controls-row {
-  display: flex;
-  flex-direction: row;
 }
 
 .bad-size {
@@ -64,20 +55,11 @@ div.noUi-handle {
   width: 1em;
 }
 
-#toolbox {
-  width: 20em;
-  padding: 1em;
-  border: 2px solid black;
-  border-radius: 5px;
-  position: fixed;
-  top: 1em;
-  left: 35em;
-  bottom: 1em;
+.sidebar-sticky {
+  position: sticky;
+  top: 0;
+  max-height: 100vh;
   overflow: auto;
-}
-
-#toolbox > div {
-  margin-bottom: 1em;
 }
 
 #outer-container {
@@ -104,7 +86,4 @@ div.noUi-handle {
     padding: 0.5em;
 }
 
-[role="tabpanel"] * {
-  margin-top: 0.5em;
-}
 

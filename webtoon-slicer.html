@@ -2,93 +2,171 @@
 <html>
   <head>
     <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <title>Webtoon Slicer</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
     <link rel="stylesheet" href="slicer.css"/>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/noUiSlider/14.0.3/nouislider.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/noUiSlider/14.0.3/nouislider.min.css"/>
-    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/gh/cferdinandi/tabby@12/dist/css/tabby-ui.min.css">
-    <script src="https://cdn.jsdelivr.net/gh/cferdinandi/tabby@12/dist/js/tabby.polyfills.min.js"></script>
   </head>
   <body>
-    <div>
-      <h1>Webtoon Slicer</h1>
-    </div>
-    <div class="controls-row">
-      <div id="outer-container">
-        <div id="image-container">
-          <div id="usage">
-            <h3>Load some images! ==&gt;</h3>
-
-            <p>Usage:</p>
-            <ol>
-              <li>Load all the images for the chapter (might take a few seconds to load!)</li>
-              <li>Set an appropriate name prefix (optional)</li>
-              <li>Move rulers around to mark page boundaries you want to split at. You can add and delete rulers with the floating buttons next to them.</li>
-              <li>Check if you're happy with the page sizes on the right side.</li>
-              <li>When you're happy with the breaks, press Download, and save all the files. This will take a few seconds, and might even crash your browser if you don't have enough RAM!</li>
-              <li>If not all files got downloaded (chrome should ask about multiple downloads), you can manually download the individual pages.</li>
-            </ol>
-            <p>Good luck! Bug tobaccoroad#5946 on Discord with bugs or if you can help with UX / CSS!</p>
+    <div class="container">
+      <div class="row">
+        <div class="col-4 sidebar">
+          <div>
+            <h1>Webtoon Slicer</h1>
+          </div>
+          <div id="toolbox" class="sidebar-sticky">
+            <div id="tab-wrapper">
+              <ul class="nav nav-tabs" id="toolboxTabs" role="tablist">
+                <li class="nav-item">
+                  <a class="nav-link active" id="settings-tab" data-toggle="tab" href="#settings" role="tab" aria-controls="settings" aria-selected="true">Settings</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" id="tools-tab" data-toggle="tab" href="#tools" role="tab" aria-controls="tools" aria-selected="false">Tools</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" id="pages-tab" data-toggle="tab" href="#pages" role="tab" aria-controls="pages" aria-selected="false">Pages</a>
+                </li>
+              </ul>
+              <div class="tab-content">
+                <div id="settings" class="tab-pane show active" role="tabpanel" aria-labelledby="settings-tab">
+                  <div>
+                    <label>
+                      Output filename prefix:
+                      <input type="text" value="page_" id="fn-prefix">
+                    </label>
+                  </div>
+                  <div>
+                    <label>
+                      Default page size:
+                      <input type="number" min="1" required id="page-size-input"> px
+                    </label>
+                  </div>
+                  <div id="upload">
+                    <label>
+                      Load raws:
+                      <input id="upload-input" type="file" multiple accept="*/*">
+                    </label>
+                  </div>
+                </div>
+                <div id="tools" class="tab-pane" role="tabpanel"  aria-labelledby="tools-tab">
+                  <div>
+                    Reset pins to:
+                    <ul>
+                      <li><a href="#reset-to-spacing" id="reset-to-spacing">default page size</a></li>
+                      <li><a href="#reset-to-breaks" id="reset-to-breaks">image boundaries</a></li>
+                    </ul>
+                  </div>
+                  <div>
+                    <button class="btn btn-info" data-toggle="modal" data-target="#logModal">Show debug log</button>
+                  </div>
+                </div>
+                <div id="pages" class="tab-pane" role="tabpanel"  aria-labelledby="pages-tab">
+                  <span>Page sizes:</span>
+                  <ol id="slice-sizes">
+                    <li>(no pages)</li>
+                  </ol>
+                </div>
+              </div>
+            </div>
+            <div id="buttonbar">
+              <button class="btn btn-info" data-toggle="modal" data-target="#helpModal">Help</button>
+              <button id="download-button" class="btn btn-primary">Download all!</button>
+            </div>
+          </div>
+        </div>
+        <div class="col-8" id="work-area">
+          <div id="outer-container">
+            <div id="image-container">
+              <div class="placeholder-text">
+                <h3>No images loaded</h3>
+                <p>Press the Help button for, uh, help</p>
+              </div>
+            </div>
+          </div>
+            <div id="slider-container">
+              <div id="slider"></div>
+            </div>
+        </div>
+      </div>
+      <div class="modal fade" id="logModal" tabindex="-1" role="dialog" aria-labelledby="logModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-scrollable" role="document">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title" id="logModalLabel">Debug log</h5>
+              <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+              </button>
+            </div>
+            <div class="modal-body">
+              <pre id="log"></pre>
+            </div>
           </div>
         </div>
       </div>
-      <div id="slider-container">
-        <div id="slider"></div>
+      <div class="modal" id="downloadingModal" tabindex="-1" role="dialog" aria-labelledby="downloadingModalLabel" aria-hidden="true" data-backdrop="static">
+        <div class="modal-dialog" role="document">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title" id="downloadingModalLabel">Saving...</h5>
+              <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+              </button>
+            </div>
+            <div class="modal-body">
+              <p>Please wait, saving output...</p>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="modal" id="loadingModal" tabindex="-1" role="dialog" aria-labelledby="loadingModalLabel" aria-hidden="true" data-backdrop="static">
+        <div class="modal-dialog" role="document">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title" id="loadingModalLabel">Loading...</h5>
+              <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+              </button>
+            </div>
+            <div class="modal-body">
+              <p>Please wait, loading images...</p>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
-    <div id="toolbox">
-      <ul data-tabs>
-        <li><a href="#tab-settings" data-tabby-default>Settings</a></li>
-        <li><a href="#tab-tools">Tools</a></li>
-        <li><a href="#tab-pages">Pages</a></li>
-      </ul>
-      <div id="tab-settings">
-        <div>
-          <label>
-            Output filename prefix:
-            <input type="text" value="page_" id="fn-prefix">
-          </label>
-        </div>
-        <div>
-          <label>
-            Default page size:
-            <input type="number" min="1" required id="page-size-input"> px
-          </label>
-        </div>
-        <div id="upload">
-          <label>
-            Load raws:
-            <input id="upload-input" type="file" multiple accept="*/*">
-          </label>
-        </div>
-      </div>
-      <div id="tab-tools">
-        <div>
-          Reset pins to:
-          <ul>
-            <li><a href="#reset-to-spacing" id="reset-to-spacing">default page size</a></li>
-            <li><a href="#reset-to-breaks" id="reset-to-breaks">image boundaries</a></li>
-          </ul>
-        </div>
-        <div>
-          <p><a href="#show-log" id="show-log">Show debug log</a></p>
-          <pre id="log" class="hidden">(empty)</pre>
+    <div class="modal fade" id="helpModal" tabindex="-1" role="dialog" aria-labelledby="helpModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-scrollable" role="document">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title" id="helpModalLabel">Help</h5>
+              <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+              </button>
+            </div>
+            <div class="modal-body">
+              <p>Usage:</p>
+              <ol>
+                <li>Load all the images for the chapter (might take a few seconds to load!)</li>
+                <li>Set an appropriate name prefix (optional)</li>
+                <li>Move rulers around to mark page boundaries you want to split at. You can add and delete rulers with the floating buttons next to them.</li>
+                <li>Check if you're happy with the page sizes on the right side.</li>
+                <li>When you're happy with the breaks, press Download, and save all the files. This will take a few seconds, and might even crash your browser if you don't have enough RAM!</li>
+                <li>If not all files got downloaded (chrome should ask about multiple downloads), you can manually download the individual pages.</li>
+              </ol>
+              <p>Good luck! Bug tobaccoroad#5946 on Discord with bugs or if you can help with UX / CSS!</p>
+            </div>
+            <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+          </div>
+          </div>
         </div>
       </div>
-      <div id="tab-pages">
-        <span>Page sizes:</span>
-        <ol id="slice-sizes">
-          <li>(no pages)</li>
-        </ol>
-      </div>
-      <div>
-        <button id="download-button">Download all!</button>
-      </div>
-      <div><a href="help.html">Help</a></div>
     </div>
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js" integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49" crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js" integrity="sha384-ChfqqxuZUCnJSK3+MXmPNIyE6ZbWh2IMqE241rYiqJxyMiZ6OW/JmZQ5stwEULTy" crossorigin="anonymous"></script>
     <script src="slicer.js"></script>
-    <script>
-      var toolTabs = new Tabby('[data-tabs]');
-    </script>
   </body>
 </html>
