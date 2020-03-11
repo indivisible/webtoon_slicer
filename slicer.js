@@ -386,7 +386,7 @@ document.addEventListener('DOMContentLoaded', () => {
       }));
     }
     Promise.all(promises).then(loadImages).catch((e) => {
-      error(`Can't read ${e.name}: ${e.err}`);
+      error(`Can't read ${e.name}: ${e.error}`);
     });
   })
 });
