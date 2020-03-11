@@ -29,16 +29,19 @@ function log(value){
 }
 
 function error(value){
+  // TODO: the app should be reset to a work-ready state on error
   console.error(value);
   alert(value);
+  throw value;
 }
 
-function loadImage(src) {
+function loadImage(source) {
   return new Promise((resolve, reject) => {
     let img = new Image();
     img.addEventListener("load", () => resolve(img));
     img.addEventListener("error", err => reject(err));
-    img.src = src;
+    img.src = source.dataURL;
+    img.name = source.name;
   });
 };
 
@@ -58,7 +61,7 @@ function loadImages(urls){
         stripWidth = img.naturalWidth;
       }else{
         if(img.naturalWidth !== stripWidth){
-          error(`Error: image width differs for ${img.src}!`);
+          error(`Error: image width differs for ${img.name}!`);
         }
       }
     }
@@ -334,6 +337,14 @@ function renderSlices(){
 }
 
 document.addEventListener('DOMContentLoaded', () => {
+  window.addEventListener('error', (e) => {
+    alert(`Unhandled exception:  ${e.error.message}\n\nPlease reload the page!`);
+    return false;
+  });
+  window.addEventListener("unhandledrejection", event => {
+    alert(`Unhandled exception:  ${event.reason}\n\nPlease reload the page!`);
+    return false;
+  });
   imageContainer = document.querySelector('#image-container');
   document.querySelector('#download-button').addEventListener('click', () => {
     renderSlices();
@@ -360,8 +371,15 @@ document.addEventListener('DOMContentLoaded', () => {
     for(let file of uploadInput.files){
       promises.push(new Promise((resolve, reject) => {
         let reader = new FileReader();
-        reader.addEventListener('load', () => resolve(reader.result))
-        reader.addEventListener('error', err => reject(err))
+        let name = file.name;
+        reader.addEventListener('load', () => {
+          let res = {
+            dataURL: reader.result,
+            name: name
+          }
+          resolve(res);
+        });
+        reader.addEventListener('error', err => reject(err));
         reader.readAsDataURL(file);
       }));
     }
