@@ -40,8 +40,8 @@ function loadImage(source) {
     let img = new Image();
     img.addEventListener("load", () => resolve(img));
     img.addEventListener("error", err => reject(err));
-    img.src = source.dataURL;
     img.name = source.name;
+    img.src = source.dataURL;
   });
 };
 
@@ -67,6 +67,8 @@ function loadImages(urls){
     }
     initSlider(getInitialPins());
     $('#loadingModal').modal('hide');
+  }).catch((e) => {
+    error(`Error loading ${e.srcElement.name}`);
   });
 }
 
@@ -379,10 +381,12 @@ document.addEventListener('DOMContentLoaded', () => {
           }
           resolve(res);
         });
-        reader.addEventListener('error', err => reject(err));
+        reader.addEventListener('error', err => reject({error: err, name: name}));
         reader.readAsDataURL(file);
       }));
     }
-    Promise.all(promises).then(loadImages);
+    Promise.all(promises).then(loadImages).catch((e) => {
+      error(`Can't read ${e.name}: ${e.err}`);
+    });
   })
 });
