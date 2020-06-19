@@ -80,7 +80,6 @@ function calculateSaliency(){
         }
       }
       if(complex != prevComplex){
-        console.log('complexity')
         goodBreakPositions.push(y);
       }else if(!complex && !comparePixel(color, prevColor)){
         goodBreakPositions.push(y);
@@ -90,7 +89,6 @@ function calculateSaliency(){
       y++;
     }
   }
-  console.log(y);
 }
 
 function loadImages(urls){
