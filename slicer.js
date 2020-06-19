@@ -1,6 +1,5 @@
-const TOO_BIG = 4500;
-const TOO_SMALL = 300;
 const DEFAULT_PAGE_SIZE = 3500;
+const DEFAULT_WARN_DIFFERENCE = 1000;
 // how many pixels away will we add new pins
 const PIN_STEP = 100;
 const DEFAULT_FILENAME_PREFIX = 'page_';
@@ -20,6 +19,14 @@ function getPageSize(){
     return input.valueAsNumber;
   }
   return DEFAULT_PAGE_SIZE;
+}
+
+function getWarnDifference(){
+  let input = document.querySelector('#page-size-difference-input');
+  if(input.validity.valid){
+    return input.valueAsNumber;
+  }
+  return DEFAULT_WARN_DIFFERENCE;
 }
 
 function log(value){
@@ -130,6 +137,8 @@ function updateSliceSizes(positions){
       return false;
     }
   }
+  const maxDifference = getWarnDifference();
+  const pageSize = getPageSize();
   for(const [idx, position] of positions.concat(stripHeight).entries()){
     let size = position - prevPosition;
     let li = document.createElement('li');
@@ -150,7 +159,8 @@ function updateSliceSizes(positions){
       evt.preventDefault();
       return false;
     });
-    if(size < TOO_SMALL || size > TOO_BIG){
+    let diff = Math.abs(size - getPageSize());
+    if(diff >= maxDifference){
       li.setAttribute('class', 'bad-size');
     }
     let a = document.createElement('a');
@@ -435,6 +445,9 @@ document.addEventListener('DOMContentLoaded', () => {
   let pageSizeInput = document.querySelector('#page-size-input');
   if(pageSizeInput.validity.valueMissing)
     pageSizeInput.value = DEFAULT_PAGE_SIZE;
+  let pageSizeDifferenceInput = document.querySelector('#page-size-difference-input');
+  if(pageSizeDifferenceInput.validity.valueMissing)
+    pageSizeDifferenceInput.value = DEFAULT_WARN_DIFFERENCE;
   let uploadInput = document.querySelector('#upload-input');
   uploadInput.addEventListener('change', () => {
     $('#loadingModal').modal('show');
