@@ -288,15 +288,18 @@ function getInitialPins(){
     pos = y;
   }
   const warnDiff = getWarnDifference();
+  const enableSmartBreaks = document.querySelector('#smart-breaks').checked;
   for(pos += pageSize; pos <= stripHeight; pos += pageSize){
-    let nearestBreaks = getNearestBreaks(pos);
-    if(nearestBreaks){
-      nearestBreaks.sort((a, b) => {
-        return Math.abs(a - pos) - Math.abs(b - pos);
-      });
-      let nearest = nearestBreaks[0];
-      if(Math.abs(pos - nearest) <= warnDiff){
-        pos = nearest;
+    if(enableSmartBreaks){
+      let nearestBreaks = getNearestBreaks(pos);
+      if(nearestBreaks){
+        nearestBreaks.sort((a, b) => {
+          return Math.abs(a - pos) - Math.abs(b - pos);
+        });
+        let nearest = nearestBreaks[0];
+        if(Math.abs(pos - nearest) <= warnDiff){
+          pos = nearest;
+        }
       }
     }
     pins.push(pos);
