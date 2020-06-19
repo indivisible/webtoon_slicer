@@ -76,25 +76,39 @@ function updateSliceSizes(positions){
   let ul = document.querySelector('#slice-sizes');
   let frag = new DocumentFragment();
   let prevPosition = 0;
-  let idx = 0;
   let makeDownloader = (y1, y2, pageNum) => {
-    return (e) => {
+    return (evt) => {
       let name = sliceName(pageNum);
       downloadSlice(y1, y2, name);
-      e.preventDefault();
+      evt.preventDefault();
       return false;
     }
   }
-  for(let position of positions.concat(stripHeight)){
-    idx++;
+  for(const [idx, position] of positions.concat(stripHeight).entries()){
     let size = position - prevPosition;
     let li = document.createElement('li');
-    li.innerText = `${size}x${stripWidth} `
+    let jumpLink = document.createElement('a');
+    li.appendChild(jumpLink);
+    li.appendChild(document.createTextNode(' '));
+    jumpLink.href = '#';
+    jumpLink.innerText = `${size}x${stripWidth}`
+    jumpLink.addEventListener('click', (evt) => {
+      const origins = slider.getElementsByClassName('noUi-origin');
+      let origin = origins[idx];
+      if(!origin){
+        origin = origins[origins.length - 1];
+      }
+      const absTop = origin.getBoundingClientRect().top + window.pageYOffset;
+      const middle = absTop - (window.innerHeight / 2);
+      window.scrollTo(0, middle);
+      evt.preventDefault();
+      return false;
+    });
     if(size < TOO_SMALL || size > TOO_BIG){
       li.setAttribute('class', 'bad-size');
     }
     let a = document.createElement('a');
-    a.addEventListener('click', makeDownloader(prevPosition, position, idx));
+    a.addEventListener('click', makeDownloader(prevPosition, position, idx + 1));
     a.setAttribute('href', '#');
     a.innerText = 'download';
     li.appendChild(a);
