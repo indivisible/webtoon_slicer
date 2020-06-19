@@ -6,6 +6,7 @@ const PIN_STEP = 100;
 const DEFAULT_FILENAME_PREFIX = 'page_';
 
 var images = [];
+var goodBreakPositions = [];
 var stripHeight = 0;
 var stripWidth = 0;
 var imageContainer;
@@ -45,6 +46,46 @@ function loadImage(source) {
   });
 };
 
+// find monochromatic lines
+function calculateSaliency(){
+  goodBreakPositions = [];
+  let prevComplex = true;
+  let prevColor = [0, 0, 0];
+  let y = 0;
+  let canvas = document.createElement('canvas');
+  const comparePixel = (a, b) => {
+    return a[0] === b[0] && a[1] === b[1] && a[2] === b[2];
+  };
+  for(const img of images){
+    canvas.width = img.naturalWidth;
+    canvas.height = img.naturalHeight;
+    let ctx = canvas.getContext('2d');
+    ctx.drawImage(img, 0, 0);
+    const data = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
+    for(let rowBase = 0; rowBase < data.length; rowBase += stripWidth * 4){
+      let complex = false;
+      let color = data.slice(rowBase, rowBase+3);
+      for(let pos = 4; pos < stripWidth*4; pos += 4){
+        let px = data.slice(rowBase+pos, rowBase+pos+3);
+        if(!comparePixel(color, px)){
+          complex = true;
+          break;
+        }
+      }
+      if(complex != prevComplex){
+        console.log('complexity')
+        goodBreakPositions.push(y);
+      }else if(!complex && !comparePixel(color, prevColor)){
+        goodBreakPositions.push(y);
+      }
+      prevComplex = complex;
+      prevColor = color;
+      y++;
+    }
+  }
+  console.log(y);
+}
+
 function loadImages(urls){
   images = [];
   let promises = [];
@@ -65,6 +106,7 @@ function loadImages(urls){
         }
       }
     }
+    calculateSaliency();
     initSlider(getInitialPins());
     $('#loadingModal').modal('hide');
   }).catch((e) => {
