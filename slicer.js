@@ -258,6 +258,25 @@ function decorateSliders(){
   }
 }
 
+function getNearestBreaks(pos){
+  let bestBefore = null;
+  let val = [];
+  for(const y of goodBreakPositions){
+    if(y < pos){
+      bestBefore = y;
+    }else if(y == pos){
+      val = [y];
+    }else{
+      val.push(y);
+      break;
+    }
+  }
+  if(bestBefore){
+    val.unshift(bestBefore);
+  }
+  return val;
+}
+
 function getInitialPins(){
   let pins = [];
   const headers = document.querySelector('#header-count').valueAsNumber;
@@ -270,7 +289,18 @@ function getInitialPins(){
     pins.push(y);
     pos = y;
   }
+  const warnDiff = getWarnDifference();
   for(pos += pageSize; pos <= stripHeight; pos += pageSize){
+    let nearestBreaks = getNearestBreaks(pos);
+    if(nearestBreaks){
+      nearestBreaks.sort((a, b) => {
+        return Math.abs(a - pos) - Math.abs(b - pos);
+      });
+      let nearest = nearestBreaks[0];
+      if(Math.abs(pos - nearest) <= warnDiff){
+        pos = nearest;
+      }
+    }
     pins.push(pos);
   }
   return pins;
