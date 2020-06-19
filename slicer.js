@@ -68,7 +68,11 @@ function loadImages(urls){
     initSlider(getInitialPins());
     $('#loadingModal').modal('hide');
   }).catch((e) => {
-    error(`Error loading ${e.srcElement.name}`);
+    if(e.srcElement){
+      error(`Error loading ${e.srcElement.name}`);
+    }else{
+      error(`Loading error: ${e}`);
+    }
   });
 }
 
@@ -204,9 +208,18 @@ function decorateSliders(){
 
 function getInitialPins(){
   let pins = [];
+  const headers = document.querySelector('#header-count').valueAsNumber;
   const pageSize = getPageSize();
-  for(let i=pageSize; i<=stripHeight; i+=pageSize){
-    pins.push(i);
+  let pos = 0;
+  for(const [idx, y] of getImageBreaks().entries()){
+    if(idx >= headers){
+      break;
+    }
+    pins.push(y);
+    pos = y;
+  }
+  for(pos += pageSize; pos <= stripHeight; pos += pageSize){
+    pins.push(pos);
   }
   return pins;
 }
