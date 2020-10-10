@@ -144,7 +144,7 @@ function updateSliceSizes(positions){
     li.appendChild(jumpLink);
     li.appendChild(document.createTextNode(' '));
     jumpLink.href = '#';
-    jumpLink.innerText = `${size}x${stripWidth}`
+    jumpLink.innerText = `${stripWidth}x${size}`
     jumpLink.addEventListener('click', (evt) => {
       const origins = slider.getElementsByClassName('noUi-origin');
       let origin = origins[idx];
