@@ -415,11 +415,11 @@ function downloadDataURL(url, name){
   link.click();
 }
 
-function downloadSlice(y1, y2, name){
+function downloadSlice(y1, y2, name, downloadFunc){
   log(`downloadSlice(${y1}, ${y2}, ${name})`);
   let slice = renderSlice(y1, y2)
   let blob = dataURLtoBlob(slice);
-  downloadBlob(blob, name);
+  downloadFunc(blob, name);
 }
 
 function sliceName(idx){
@@ -431,7 +431,7 @@ function sliceName(idx){
   return prefix + idx.toString().padStart(2, '0') + '.png';
 }
 
-function renderSlices(){
+function renderSlices(sliceDoneFunc, doneFunc){
   $('#downloadingModal').modal('show');
   setTimeout(() => {
     let positions = getPinPositions().concat(stripHeight);
@@ -441,8 +441,11 @@ function renderSlices(){
     for(let y of positions){
       let name = sliceName(num);
       num++;
-      downloadSlice(start, y, name);
+      downloadSlice(start, y, name, sliceDoneFunc);
       start = y;
+    }
+    if(doneFunc){
+      doneFunc();
     }
     $('#downloadingModal').modal('hide');
   }, 100);
@@ -459,7 +462,15 @@ document.addEventListener('DOMContentLoaded', () => {
   });
   imageContainer = document.querySelector('#image-container');
   document.querySelector('#download-button').addEventListener('click', () => {
-    renderSlices();
+    renderSlices(downloadBlob);
+  });
+  document.querySelector('#download-zip-button').addEventListener('click', () => {
+    let zip = new JSZip();
+    let sliceDoneFunc = (blob, name) => zip.file(name, blob);
+    let doneFunc = () => {
+      zip.generateAsync({type: 'blob', compression: 'STORE'}).then((content) => downloadBlob(content, 'compiled.zip'))
+    };
+    renderSlices(sliceDoneFunc, doneFunc);
   });
   document.querySelector('#reset-to-spacing').addEventListener('click', (e) => {
     if(stripHeight > 0)
