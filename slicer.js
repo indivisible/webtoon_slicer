@@ -433,7 +433,7 @@ function sliceName(idx){
 
 function renderSlices(sliceDoneFunc, doneFunc){
   $('#downloadingModal').modal('show');
-  setTimeout(() => {
+  setTimeout(async () => {
     let positions = getPinPositions().concat(stripHeight);
     let start = 0;
     let slices = [];
@@ -445,7 +445,7 @@ function renderSlices(sliceDoneFunc, doneFunc){
       start = y;
     }
     if(doneFunc){
-      doneFunc();
+      await doneFunc();
     }
     $('#downloadingModal').modal('hide');
   }, 100);
@@ -467,8 +467,9 @@ document.addEventListener('DOMContentLoaded', () => {
   document.querySelector('#download-zip-button').addEventListener('click', () => {
     let zip = new JSZip();
     let sliceDoneFunc = (blob, name) => zip.file(name, blob);
-    let doneFunc = () => {
-      zip.generateAsync({type: 'blob', compression: 'STORE'}).then((content) => downloadBlob(content, 'compiled.zip'))
+    let doneFunc = async () => {
+      let content = await zip.generateAsync({type: 'blob', compression: 'STORE'});
+      downloadBlob(content, 'compiled.zip');
     };
     renderSlices(sliceDoneFunc, doneFunc);
   });
