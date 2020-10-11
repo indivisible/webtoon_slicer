@@ -258,23 +258,27 @@ function decorateSliders(){
   }
 }
 
-function getNearestBreaks(pos){
-  let bestBefore = null;
-  let val = [];
+function getNearestBreak(pos){
+  let before = null;
   for(const y of goodBreakPositions){
     if(y < pos){
-      bestBefore = y;
+      before = y;
     }else if(y == pos){
-      val = [y];
+      return y;
     }else{
-      val.push(y);
-      break;
+      // we are at the break just after the specified position
+      if(!before){
+        return y;
+      }
+      const distanceFromLast = (pos - before);
+      const distanceToNext = (y - pos);
+      if(distanceFromLast <= distanceToNext){
+        return before;
+      }
+      return y;
     }
   }
-  if(bestBefore){
-    val.unshift(bestBefore);
-  }
-  return val;
+  return before;
 }
 
 function getInitialPins(){
@@ -293,15 +297,9 @@ function getInitialPins(){
   const enableSmartBreaks = document.querySelector('#smart-breaks').checked;
   for(pos += pageSize; pos <= stripHeight; pos += pageSize){
     if(enableSmartBreaks){
-      let nearestBreaks = getNearestBreaks(pos);
-      if(nearestBreaks){
-        nearestBreaks.sort((a, b) => {
-          return Math.abs(a - pos) - Math.abs(b - pos);
-        });
-        let nearest = nearestBreaks[0];
-        if(Math.abs(pos - nearest) <= warnDiff){
-          pos = nearest;
-        }
+      let nearest = getNearestBreak(pos);
+      if(nearest && Math.abs(pos - nearest) <= warnDiff){
+        pos = nearest;
       }
     }
     pins.push(pos);
