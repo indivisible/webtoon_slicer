@@ -401,11 +401,12 @@ function dataURLtoBlob(dataURI) {
 function downloadBlob(blob, name){
   let a = document.createElement('a');
   a.download = name;
-  a.href = window.URL.createObjectURL(blob);
+  a.href = URL.createObjectURL(blob);
   a.dataset.downloadurl = [blob.type, a.download, a.href].join(':');
   let e = document.createEvent('MouseEvents');
   e.initMouseEvent('click', true, false, window, 0, 0, 0, 0, 0, false, false, false, false, 0, null);
   a.dispatchEvent(e);
+  URL.revokeObjectURL(a.href);
 }
 
 function downloadDataURL(url, name){
