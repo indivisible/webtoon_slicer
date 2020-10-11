@@ -43,13 +43,13 @@ function error(value){
   throw value;
 }
 
-function loadImage(source) {
+function loadImage(file) {
   return new Promise((resolve, reject) => {
     let img = new Image();
     img.addEventListener("load", () => resolve(img));
     img.addEventListener("error", err => reject(err));
-    img.name = source.name;
-    img.src = source.dataURL;
+    img.name = file.name;
+    img.src = URL.createObjectURL(file);
   });
 };
 
@@ -91,15 +91,18 @@ function calculateSaliency(){
   }
 }
 
-function loadImages(urls){
+function loadImages(files){
+  imageContainer.innerHTML = '';
+  for(const img of images){
+    URL.revokeObjectURL(img.src);
+  }
   images = [];
   let promises = [];
   stripHeight = 0;
-  Promise.all(Array.from(urls).map(loadImage)).then((newImages) => {
+  Promise.all(Array.from(files).map(loadImage)).then((newImages) => {
     images = newImages;
     stripHeight = images.reduce((a, b) => a + b.naturalHeight, 0);
     log(`loaded ${images.length} images, total ${stripHeight}px`);
-    imageContainer.innerHTML = '';
     stripWidth = null;
     for(let img of images){
       imageContainer.appendChild(img);
@@ -495,24 +498,6 @@ document.addEventListener('DOMContentLoaded', () => {
   let uploadInput = document.querySelector('#upload-input');
   uploadInput.addEventListener('change', () => {
     $('#loadingModal').modal('show');
-    let promises = [];
-    for(let file of uploadInput.files){
-      promises.push(new Promise((resolve, reject) => {
-        let reader = new FileReader();
-        let name = file.name;
-        reader.addEventListener('load', () => {
-          let res = {
-            dataURL: reader.result,
-            name: name
-          }
-          resolve(res);
-        });
-        reader.addEventListener('error', err => reject({error: err, name: name}));
-        reader.readAsDataURL(file);
-      }));
-    }
-    Promise.all(promises).then(loadImages).catch((e) => {
-      error(`Can't read ${e.name}: ${e.error}`);
-    });
+    loadImages(uploadInput.files);
   })
 });
