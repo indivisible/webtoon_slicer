@@ -457,6 +457,8 @@ function renderSlices(sliceDoneFunc, doneFunc){
     let slices = [];
     let num = 1;
     for(let y of positions){
+      if(start == y)
+        continue;
       let name = sliceName(num);
       num++;
       downloadSlice(start, y, name, sliceDoneFunc);
