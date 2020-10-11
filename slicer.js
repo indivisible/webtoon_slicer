@@ -304,6 +304,19 @@ function getInitialPins(){
     }
     pins.push(pos);
   }
+  // if the last page is too small, try to merge it with the page before
+  if(pins.length > 1){
+    const lastPageHeight = stripHeight - pins[pins.length - 1];
+    let secondToLastHeight = pins[pins.length - 2];
+    if(pins.length > 2){
+      secondToLastHeight = pins[pins.length - 2] - pins[pins.length - 3];
+    }
+    if(lastPageHeight < pageSize - warnDiff){
+      if(secondToLastHeight + lastPageHeight < pageSize + warnDiff){
+        pins.pop();
+      }
+    }
+  }
   return pins;
 }
 
