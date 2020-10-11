@@ -93,6 +93,7 @@ function calculateSaliency(){
 
 function loadImages(files){
   imageContainer.innerHTML = '';
+  destroySlider();
   for(const img of images){
     URL.revokeObjectURL(img.src);
   }
@@ -188,7 +189,6 @@ function getPinPositions(){
 function deletePin(idx){
   let positions = getPinPositions();
   positions.splice(idx, 1);
-  slider.noUiSlider.destroy();
   initSlider(positions);
 }
 
@@ -201,7 +201,6 @@ function addPin(newOffset){
     return false;
   }
   positions.push(newOffset);
-  slider.noUiSlider.destroy();
   initSlider(positions);
 }
 
@@ -323,17 +322,21 @@ function getImageBreaks(){
   return breaks;
 }
 
-function initSlider(pins){
-  if(pins.length == 0){
-    pins = [stripHeight];
-  }
-  pins = pins.sort((a, b) => a - b);
+function destroySlider(){
   let sliderObj = null;
   if(slider){
     sliderObj = slider.noUiSlider;
     if(typeof sliderObj !== 'undefined' || sliderObj)
       slider.noUiSlider.destroy();
   }
+}
+
+function initSlider(pins){
+  if(pins.length == 0){
+    pins = [stripHeight];
+  }
+  pins = pins.sort((a, b) => a - b);
+  destroySlider();
   slider = document.getElementById('slider');
   log(`pins: ${pins}`);
 
