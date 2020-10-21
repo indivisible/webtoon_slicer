@@ -283,19 +283,31 @@ function getNearestBreak(pos){
 
 function getInitialPins(){
   let pins = [];
-  const headers = document.querySelector('#header-count').valueAsNumber;
+  const headerCount = document.querySelector('#header-count').valueAsNumber;
+  const footerCount = document.querySelector('#footer-count').valueAsNumber;
   const pageSize = getPageSize();
   let pos = 0;
   for(const [idx, y] of getImageBreaks().entries()){
-    if(idx >= headers){
+    if(idx >= headerCount){
       break;
     }
     pins.push(y);
     pos = y;
   }
+  let footerHeight = 0;
+  let footerPins = [];
+  for(const [idx, y] of getImageBreaks().slice().reverse().entries()){
+    if(idx >= footerCount){
+      break;
+    }
+    footerPins.unshift(y);
+    footerHeight = stripHeight - y;
+  }
+  log(`added footer: ${footerPins}, ${footerHeight} px`);
+
   const warnDiff = getWarnDifference();
   const enableSmartBreaks = document.querySelector('#smart-breaks').checked;
-  for(pos += pageSize; pos <= stripHeight; pos += pageSize){
+  for(pos += pageSize; pos <= stripHeight - footerHeight; pos += pageSize){
     if(enableSmartBreaks){
       let nearest = getNearestBreak(pos);
       if(nearest && Math.abs(pos - nearest) <= warnDiff){
@@ -306,17 +318,21 @@ function getInitialPins(){
   }
   // if the last page is too small, try to merge it with the page before
   if(pins.length > 1){
-    const lastPageHeight = stripHeight - pins[pins.length - 1];
-    let secondToLastHeight = pins[pins.length - 2];
-    if(pins.length > 2){
-      secondToLastHeight = pins[pins.length - 2] - pins[pins.length - 3];
+    log(`pages before merge check: ${JSON.stringify(pins)}`)
+    const lastPageHeight = stripHeight - footerHeight - pins[pins.length - 1];
+    let secondToLastHeight = pins[pins.length - 1];
+    if(pins.length >= 2){
+      secondToLastHeight = pins[pins.length - 1] - pins[pins.length - 2];
     }
     if(lastPageHeight < pageSize - warnDiff){
+      log(`Last page too small: ${lastPageHeight}, attemtpting merge with ${secondToLastHeight}`);
       if(secondToLastHeight + lastPageHeight < pageSize + warnDiff){
         pins.pop();
+        log('last page merged');
       }
     }
   }
+  pins = pins.concat(footerPins);
   return pins;
 }
 
