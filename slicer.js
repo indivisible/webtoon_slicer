@@ -246,7 +246,8 @@ function decorateSliders(){
     for(const [parent, offset] of [[beforeDiv, -100], [afterDiv, 100]]){
       let addPinButton = document.createElement('button');
       addPinButton.setAttribute('class', 'add-pin pin-button');
-      addPinButton.innerText = '+';
+      addPinButton.innerText = '➕';
+      addPinButton.title = "Add new cut";
       parent.appendChild(addPinButton);
       addPinButton.addEventListener('click', () => addPin(pos + offset));
       addPinButton.addEventListener('mousedown', (e) => e.stopPropagation());
