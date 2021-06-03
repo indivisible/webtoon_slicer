@@ -48,7 +48,7 @@ function loadImage(file) {
     let img = new Image();
     img.addEventListener("load", () => resolve(img));
     img.addEventListener("error", err => reject(err));
-    img.name = file.name;
+    img.dataset["name"] = file.name;
     img.src = URL.createObjectURL(file);
   });
 };
@@ -117,7 +117,7 @@ function loadImages(files){
         stripWidth = img.naturalWidth;
       }else{
         if(img.naturalWidth !== stripWidth){
-          error(`Error: image width differs for ${img.name}!`);
+          error(`Error: image width differs for ${img.dataset["name"]}!`);
         }
       }
     }
@@ -126,7 +126,7 @@ function loadImages(files){
     $('#loadingModal').modal('hide');
   }).catch((e) => {
     if(e.srcElement){
-      error(`Error loading ${e.srcElement.name}`);
+      error(`Error loading ${e.srcElement.dataset["name"]}`);
     }else{
       error(`Loading error: ${e}`);
     }
