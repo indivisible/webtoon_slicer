@@ -53,25 +53,30 @@ function loadImage(file) {
   });
 };
 
-// find monochromatic lines
-function calculateSaliency(){
+// find monochromatic regions of the strip and designate their starts
+// and ends as good points to insert a break
+function calculateBreaks(){
   goodBreakPositions = [];
+  // "complex" means the line is not monochromatic
   let prevComplex = true;
   let prevColor = [0, 0, 0];
   let y = 0;
   let canvas = document.createElement('canvas');
+  // RGB pixel comparision (ignores alpha)
   const comparePixel = (a, b) => {
     return a[0] === b[0] && a[1] === b[1] && a[2] === b[2];
   };
   for(const img of images){
     canvas.width = img.naturalWidth;
     canvas.height = img.naturalHeight;
-    let ctx = canvas.getContext('2d');
+    const ctx = canvas.getContext('2d');
     ctx.drawImage(img, 0, 0);
+    // image as an RGBA array
     const data = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
     for(let rowBase = 0; rowBase < data.length; rowBase += stripWidth * 4){
       let complex = false;
       let color = data.slice(rowBase, rowBase+3);
+      // start from the 2nd pixel (pos = 4)
       for(let pos = 4; pos < stripWidth*4; pos += 4){
         let px = data.slice(rowBase+pos, rowBase+pos+3);
         if(!comparePixel(color, px)){
@@ -80,8 +85,10 @@ function calculateSaliency(){
         }
       }
       if(complex != prevComplex){
+        // it's either the start or end of a monochromatic region
         goodBreakPositions.push(y);
       }else if(!complex && !comparePixel(color, prevColor)){
+        // we're at the border of 2 different colored regions
         goodBreakPositions.push(y);
       }
       prevComplex = complex;
@@ -114,7 +121,7 @@ function loadImages(files){
         }
       }
     }
-    calculateSaliency();
+    calculateBreaks();
     initSlider(getInitialPins());
     $('#loadingModal').modal('hide');
   }).catch((e) => {
