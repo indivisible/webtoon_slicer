@@ -98,7 +98,6 @@ function loadImages(files){
     URL.revokeObjectURL(img.src);
   }
   images = [];
-  let promises = [];
   stripHeight = 0;
   Promise.all(Array.from(files).map(loadImage)).then((newImages) => {
     images = newImages;
@@ -140,7 +139,6 @@ function updateSliceSizes(positions){
     }
   }
   const maxDifference = getWarnDifference();
-  const pageSize = getPageSize();
   for(const [idx, position] of positions.concat(stripHeight).entries()){
     let size = position - prevPosition;
     let li = document.createElement('li');
@@ -367,7 +365,7 @@ function initSlider(pins){
   slider = document.getElementById('slider');
   log(`pins: ${pins}`);
 
-  let sliderUI = noUiSlider.create(slider, {
+  noUiSlider.create(slider, {
     start: pins,
     connect: false,
     animate: false,
@@ -470,7 +468,6 @@ function renderSlices(sliceDoneFunc, doneFunc){
   setTimeout(async () => {
     let positions = getPinPositions().concat(stripHeight);
     let start = 0;
-    let slices = [];
     let num = 1;
     for(let y of positions){
       if(start == y)
