@@ -266,7 +266,7 @@ function decorateSliders(){
           const newPos = validPositions[posIdx];
           const delta = Math.abs(newPos - pos);
 
-          if (delta > 3 * stripWidth) {
+          if (delta > 2 * stripWidth) {
             console.log("no moving pin: too big jump");
             return;
           }
