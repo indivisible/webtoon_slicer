@@ -251,6 +251,31 @@ function decorateSliders(){
       parent.appendChild(addPinButton);
       addPinButton.addEventListener('click', () => addPin(pos + offset));
       addPinButton.addEventListener('mousedown', (e) => e.stopPropagation());
+
+      const moveButton = document.createElement('button');
+      moveButton.setAttribute('class', 'move-pin pin-button');
+      const direction = parent == beforeDiv ? -1 : 1;
+      moveButton.innerText = direction == -1 ? "⏫" : "⏬";
+      moveButton.title = "Move to next good cut position";
+      parent.appendChild(moveButton);
+      moveButton.addEventListener('click', () => {
+        console.debug("move pin %o", i);
+        const validPositions = goodBreakPositions.filter((v) => Math.sign(v - pos) == direction);
+        if (validPositions.length > 0) {
+          const posIdx = direction == -1 ? validPositions.length - 1 : 0;
+          const newPos = validPositions[posIdx];
+          const delta = Math.abs(newPos - pos);
+
+          if (delta > 3 * stripWidth) {
+            console.log("no moving pin: too big jump");
+            return;
+          }
+
+          console.debug("move pin %o (direction %o) from %o to %o", i, direction, pos, newPos);
+          slider.noUiSlider.setHandle(i, validPositions[posIdx], true);
+        }
+      });
+      moveButton.addEventListener('mousedown', (e) => e.stopPropagation());
     }
 
     tooltip.appendChild(extra);
