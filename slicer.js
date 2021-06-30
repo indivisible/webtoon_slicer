@@ -60,20 +60,21 @@ function calculateBreaks(){
   // "complex" means the line is not monochromatic
   let prevComplex = true;
   let prevColor = [0, 0, 0];
-  let y = 0;
+  let imageStartY = 0;
   let canvas = document.createElement('canvas');
   // RGB pixel comparision (ignores alpha)
   const comparePixel = (a, b) => {
     return a[0] === b[0] && a[1] === b[1] && a[2] === b[2];
   };
   for(const img of images){
+    const size = getScaledSize(img);
     canvas.width = img.naturalWidth;
     canvas.height = img.naturalHeight;
     const ctx = canvas.getContext('2d');
     ctx.drawImage(img, 0, 0);
     // image as an RGBA array
     const data = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
-    for(let rowBase = 0; rowBase < data.length; rowBase += stripWidth * 4){
+    for (let rowBase=0, unscaledY=0; rowBase < data.length; rowBase += img.naturalWidth * 4, unscaledY++) {
       let complex = false;
       let color = data.slice(rowBase, rowBase+3);
       // start from the 2nd pixel (pos = 4)
@@ -84,6 +85,7 @@ function calculateBreaks(){
           break;
         }
       }
+      const y = imageStartY + Math.round(unscaledY * size.scale);
       if(complex != prevComplex){
         // it's either the start or end of a monochromatic region
         goodBreakPositions.push(y);
@@ -93,8 +95,35 @@ function calculateBreaks(){
       }
       prevComplex = complex;
       prevColor = color;
-      y++;
+      imageStartY += size.height;
     }
+  }
+}
+
+function getBestWidth (images) {
+  const widthCounts = {};
+  let maxCount = 0;
+  let bestWidth;
+  for (const img of images) {
+    const w = img.naturalWidth;
+    if (!widthCounts[w]) {
+      widthCounts[w] = 0;
+    }
+    widthCounts[w]++;
+    if (widthCounts[w] > maxCount) {
+      maxCount = widthCounts[w];
+      bestWidth = w;
+    }
+  }
+  return bestWidth;
+}
+
+function getScaledSize (img) {
+  const scale = stripWidth / img.naturalWidth;
+  return {
+    width: stripWidth,
+    height: Math.round(img.naturalHeight * scale),
+    scale
   }
 }
 
@@ -108,19 +137,16 @@ function loadImages(files){
   stripHeight = 0;
   Promise.all(Array.from(files).map(loadImage)).then((newImages) => {
     images = newImages;
-    stripHeight = images.reduce((a, b) => a + b.naturalHeight, 0);
-    log(`loaded ${images.length} images, total ${stripHeight}px`);
-    stripWidth = null;
+    stripWidth = getBestWidth(images);
+    stripHeight = 0;
     for(let img of images){
+      const sizes = getScaledSize(img);
+      img.width = sizes.width;
+      img.height = sizes.height;
+      stripHeight += sizes.height;
       imageContainer.appendChild(img);
-      if(stripWidth === null){
-        stripWidth = img.naturalWidth;
-      }else{
-        if(img.naturalWidth !== stripWidth){
-          error(`Error: image width differs for ${img.dataset["name"]}!`);
-        }
-      }
     }
+    log(`loaded ${images.length} images, total ${stripHeight}px`);
     calculateBreaks();
     initSlider(getInitialPins());
     $('#loadingModal').modal('hide');
@@ -371,7 +397,8 @@ function getImageBreaks(){
   let breaks = [];
   let pos = 0;
   for(const img of images){
-    pos += img.naturalHeight;
+    const size = getScaledSize(img);
+    pos += size.height;
     breaks.push(pos);
   }
   // we don't want a pin at the end of the strip
@@ -430,13 +457,14 @@ function renderSlice(y1, y2){
   let offset = 0;
   let nextOffset = 0;
   for(let img of images){
+    const size = getScaledSize(img);
     offset = nextOffset;
-    nextOffset = offset + img.naturalHeight;
-    if(offset + img.naturalHeight < y1)
+    nextOffset = offset + size.height;
+    if(offset + size.height < y1)
       continue;
     if(offset > y2)
       break;
-    ctx.drawImage(img, 0, offset - y1);
+    ctx.drawImage(img, 0, offset - y1, size.width, size.height);
   }
   return canvas.toDataURL('image/png');
 }
