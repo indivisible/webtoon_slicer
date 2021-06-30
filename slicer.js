@@ -391,7 +391,7 @@ function getInitialPins(){
       secondToLastHeight = pins[pins.length - 1] - pins[pins.length - 2];
     }
     if(lastPageHeight < pageSize - warnDiff){
-      log(`Last page too small: ${lastPageHeight}, attemtpting merge with ${secondToLastHeight}`);
+      log(`Last page too small: ${lastPageHeight}, attempting merge with ${secondToLastHeight}`);
       if(secondToLastHeight + lastPageHeight < pageSize + warnDiff){
         pins.pop();
         log('last page merged');
