@@ -127,7 +127,8 @@ function getScaledSize (img) {
   }
 }
 
-function loadImages(files){
+async function loadImages(files){
+  $('#loadingModal').modal('show');
   imageContainer.innerHTML = '';
   destroySlider();
   for(const img of images){
@@ -135,8 +136,15 @@ function loadImages(files){
   }
   images = [];
   stripHeight = 0;
-  Promise.all(Array.from(files).map(loadImage)).then((newImages) => {
-    images = newImages;
+  stripWidth = 0;
+  try {
+    // inside try block so finally will run
+    if (files.length === 0) {
+      // clear the "Pages" list
+      updateSliceSizes([]);
+      return;
+    }
+    images = await Promise.all(Array.from(files).map(loadImage));
     stripWidth = getBestWidth(images);
     stripHeight = 0;
     for(let img of images){
@@ -149,18 +157,25 @@ function loadImages(files){
     log(`loaded ${images.length} images, total ${stripHeight}px`);
     calculateBreaks();
     initSlider(getInitialPins());
-    $('#loadingModal').modal('hide');
-  }).catch((e) => {
-    if(e.srcElement){
-      error(`Error loading ${e.srcElement.dataset["name"]}`);
-    }else{
-      error(`Loading error: ${e}`);
+  } catch (e) {
+    let msg = `Loading error: ${e}`;
+    if (e.srcElement) {
+      msg = `Error loading ${e.srcElement.dataset["name"]}`;
     }
-  });
+    console.error(msg);
+    alert(msg);
+    return loadImages([]);
+  } finally {
+    $('#loadingModal').modal('hide');
+  }
 }
 
 function updateSliceSizes(positions){
-  let ul = document.querySelector('#slice-sizes');
+  const ul = document.querySelector('#slice-sizes');
+  if (positions.length === 0) {
+    ul.innerHTML = '<li>(no pages)</li>';
+    return;
+  }
   let frag = new DocumentFragment();
   let prevPosition = 0;
   let makeDownloader = (y1, y2, pageNum) => {
@@ -587,7 +602,7 @@ document.addEventListener('DOMContentLoaded', () => {
     pageSizeDifferenceInput.value = DEFAULT_WARN_DIFFERENCE;
   let uploadInput = document.querySelector('#upload-input');
   uploadInput.addEventListener('change', () => {
-    $('#loadingModal').modal('show');
     loadImages(uploadInput.files);
-  })
+  });
+  loadImages(uploadInput.files);
 });
