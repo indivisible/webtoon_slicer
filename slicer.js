@@ -13,34 +13,27 @@ var slider;
 var debugLog = "";
 const labelFormatter = {to: (num) => Math.floor(num).toString().replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1,')};
 
-function getPageSize(){
-  let input = document.querySelector('#page-size-input');
+function getInputNumber(selector, defaultValue) {
+  const input = document.querySelector(selector);
   if(input.validity.valid){
     return input.valueAsNumber;
   }
-  return DEFAULT_PAGE_SIZE;
+  return defaultValue;
+}
+
+function getPageSize(){
+  return getInputNumber('#page-size-input', DEFAULT_PAGE_SIZE);
 }
 
 function getWarnDifference(){
-  let input = document.querySelector('#page-size-difference-input');
-  if(input.validity.valid){
-    return input.valueAsNumber;
-  }
-  return DEFAULT_WARN_DIFFERENCE;
+  return getInputNumber('#page-size-difference-input', DEFAULT_WARN_DIFFERENCE);
 }
 
 function log(value){
   console.log(value);
   debugLog += '\n' + value;
-  let elem = document.querySelector('#log');
+  const elem = document.querySelector('#log');
   elem.innerText = debugLog;
-}
-
-function error(value){
-  // TODO: the app should be reset to a work-ready state on error
-  console.error(value);
-  alert(value);
-  throw value;
 }
 
 function loadImage(file) {
@@ -162,6 +155,7 @@ async function loadImages(files){
     if (e.srcElement) {
       msg = `Error loading ${e.srcElement.dataset["name"]}`;
     }
+    log(msg);
     console.error(msg);
     alert(msg);
     return loadImages([]);
@@ -315,7 +309,7 @@ function decorateSliders(){
           const delta = Math.abs(newPos - pos);
 
           if (delta > 2 * stripWidth) {
-            console.log("no moving pin: too big jump");
+            log("no moving pin: too big jump");
             return;
           }
 
@@ -574,9 +568,9 @@ document.addEventListener('DOMContentLoaded', () => {
     renderSlices(downloadBlob);
   });
   document.querySelector('#download-zip-button').addEventListener('click', () => {
-    let zip = new JSZip();
-    let sliceDoneFunc = (blob, name) => zip.file(name, blob);
-    let doneFunc = async () => {
+    const zip = new JSZip();
+    const sliceDoneFunc = (blob, name) => zip.file(name, blob);
+    const doneFunc = async () => {
       let content = await zip.generateAsync({type: 'blob', compression: 'STORE'});
       downloadBlob(content, 'compiled.zip');
     };
@@ -594,13 +588,13 @@ document.addEventListener('DOMContentLoaded', () => {
     e.preventDefault();
     return false;
   });
-  let pageSizeInput = document.querySelector('#page-size-input');
+  const pageSizeInput = document.querySelector('#page-size-input');
   if(pageSizeInput.validity.valueMissing)
     pageSizeInput.value = DEFAULT_PAGE_SIZE;
-  let pageSizeDifferenceInput = document.querySelector('#page-size-difference-input');
+  const pageSizeDifferenceInput = document.querySelector('#page-size-difference-input');
   if(pageSizeDifferenceInput.validity.valueMissing)
     pageSizeDifferenceInput.value = DEFAULT_WARN_DIFFERENCE;
-  let uploadInput = document.querySelector('#upload-input');
+  const uploadInput = document.querySelector('#upload-input');
   uploadInput.addEventListener('change', () => {
     loadImages(uploadInput.files);
   });
