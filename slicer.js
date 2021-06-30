@@ -88,8 +88,8 @@ function calculateBreaks(){
       }
       prevComplex = complex;
       prevColor = color;
-      imageStartY += size.height;
     }
+    imageStartY += size.height;
   }
 }
 
