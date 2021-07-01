@@ -15,7 +15,7 @@
     "build": "npm run build:dev",
     "watch:static": "onchange 'public/**/*' -- npm run copy:static",
     "watch:ts": "onchange 'src/**/*.ts' -- npm run webpack:dev",
-    "watch": "run-p watch:*",
+    "watch": "run-p build:dev watch:*",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
