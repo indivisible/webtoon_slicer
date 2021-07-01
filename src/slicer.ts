@@ -551,8 +551,8 @@ function downloadDataURL(url: string, name: string) {
   link.click();
 }
 
-type DoneCallback = (blob: Blob, name: string) => void;
-function downloadSlice(y1: number, y2: number, name: string, downloadFunc: DoneCallback) {
+type DownloadCallback = (blob: Blob, name: string) => void;
+function downloadSlice(y1: number, y2: number, name: string, downloadFunc: DownloadCallback) {
   log(`downloadSlice(${y1}, ${y2}, ${name})`);
   const slice = renderSlice(y1, y2)
   const blob = dataURLtoBlob(slice);
@@ -568,7 +568,7 @@ function sliceName(idx: number) {
   return prefix + idx.toString().padStart(2, '0') + '.png';
 }
 
-function renderSlices(sliceDoneFunc: DoneCallback, doneFunc?: () => Promise<void>) {
+function renderSlices(sliceDoneFunc: DownloadCallback, doneFunc?: () => Promise<void>) {
   $('#downloadingModal').modal('show');
   setTimeout(async () => {
     const positions = getPinPositions().concat(stripHeight);
