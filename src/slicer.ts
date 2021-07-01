@@ -1,21 +1,31 @@
+import * as noUiSlider from "nouislider";
+import JSZip from "jszip";
+
 const DEFAULT_PAGE_SIZE = 3500;
 const DEFAULT_WARN_DIFFERENCE = 1000;
 // how many pixels away will we add new pins
 const PIN_STEP = 100;
 const DEFAULT_FILENAME_PREFIX = 'page_';
 
-var images = [];
-var goodBreakPositions = [];
+var images: HTMLImageElement[] = [];
+var goodBreakPositions: number[] = [];
 var stripHeight = 0;
 var stripWidth = 0;
-var imageContainer;
-var slider;
+var imageContainer: HTMLElement;
+var slider: HTMLElement;
+var sliderAPI: noUiSlider.API;
 var debugLog = "";
-const labelFormatter = {to: (num) => Math.floor(num).toString().replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1,')};
+const labelFormatter = {
+  to: (num: number) => Math.floor(num).toString().replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1,')
+};
 
-function getInputNumber(selector, defaultValue) {
-  const input = document.querySelector(selector);
-  if(input.validity.valid){
+function getInput(selector: string): HTMLInputElement {
+  return document.querySelector(selector) as HTMLInputElement;
+}
+
+function getInputNumber(selector: string, defaultValue: number) {
+  const input = getInput(selector);
+  if(input && input.validity.valid){
     return input.valueAsNumber;
   }
   return defaultValue;
@@ -29,14 +39,15 @@ function getWarnDifference(){
   return getInputNumber('#page-size-difference-input', DEFAULT_WARN_DIFFERENCE);
 }
 
-function log(value){
+function log(value: any){
   console.log(value);
   debugLog += '\n' + value;
-  const elem = document.querySelector('#log');
-  elem.innerText = debugLog;
+  const elem = document.querySelector('#log') as HTMLElement;
+  if (elem)
+    elem.innerText = debugLog;
 }
 
-function loadImage(file) {
+function loadImage(file: File): Promise<HTMLImageElement> {
   return new Promise((resolve, reject) => {
     let img = new Image();
     img.addEventListener("load", () => resolve(img));
@@ -49,14 +60,15 @@ function loadImage(file) {
 // find monochromatic regions of the strip and designate their starts
 // and ends as good points to insert a break
 function calculateBreaks(){
+  type Pixel = number[] | Uint8ClampedArray;
   goodBreakPositions = [];
   // "complex" means the line is not monochromatic
   let prevComplex = true;
-  let prevColor = [0, 0, 0];
+  let prevColor: Pixel = [0, 0, 0];
   let imageStartY = 0;
   let canvas = document.createElement('canvas');
   // RGB pixel comparision (ignores alpha)
-  const comparePixel = (a, b) => {
+  const comparePixel = (a: Pixel, b: Pixel) => {
     return a[0] === b[0] && a[1] === b[1] && a[2] === b[2];
   };
   for(const img of images){
@@ -64,6 +76,9 @@ function calculateBreaks(){
     canvas.width = img.naturalWidth;
     canvas.height = img.naturalHeight;
     const ctx = canvas.getContext('2d');
+    if (!ctx) {
+      throw "Error creating canvas context! Try a newer browser!";
+    }
     ctx.drawImage(img, 0, 0);
     // image as an RGBA array
     const data = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
@@ -93,10 +108,10 @@ function calculateBreaks(){
   }
 }
 
-function getBestWidth (images) {
-  const widthCounts = {};
+function getBestWidth (images: HTMLImageElement[]) {
+  const widthCounts: {[width: number]: number} = {};
   let maxCount = 0;
-  let bestWidth;
+  let bestWidth = 0;
   for (const img of images) {
     const w = img.naturalWidth;
     if (!widthCounts[w]) {
@@ -111,7 +126,7 @@ function getBestWidth (images) {
   return bestWidth;
 }
 
-function getScaledSize (img) {
+function getScaledSize (img: HTMLImageElement) {
   const scale = stripWidth / img.naturalWidth;
   return {
     width: stripWidth,
@@ -120,7 +135,7 @@ function getScaledSize (img) {
   }
 }
 
-async function loadImages(files){
+async function loadImages(files: FileList | []): Promise<void> {
   $('#loadingModal').modal('show');
   imageContainer.innerHTML = '';
   destroySlider();
@@ -164,18 +179,18 @@ async function loadImages(files){
   }
 }
 
-function updateSliceSizes(positions){
-  const ul = document.querySelector('#slice-sizes');
+function updateSliceSizes(positions: number[]){
+  const ul = document.querySelector('#slice-sizes') as HTMLElement;
   if (positions.length === 0) {
     ul.innerHTML = '<li>(no pages)</li>';
     return;
   }
   let frag = new DocumentFragment();
   let prevPosition = 0;
-  let makeDownloader = (y1, y2, pageNum) => {
-    return (evt) => {
+  let makeDownloader = (y1: number, y2: number, pageNum: number) => {
+    return (evt: Event) => {
       let name = sliceName(pageNum);
-      downloadSlice(y1, y2, name);
+      downloadSlice(y1, y2, name, downloadBlob);
       evt.preventDefault();
       return false;
     }
@@ -218,21 +233,21 @@ function updateSliceSizes(positions){
 }
 
 function getPinPositions(){
-  let values = slider.noUiSlider.get();
+  let values = sliderAPI.get();
   if(Array.isArray(values)){
-    return values.map(parseFloat);
+    return values.map((v) => parseFloat(v as string));
   }else{
-    return [parseFloat(values)];
+    return [parseFloat(values as string)];
   }
 }
 
-function deletePin(idx){
+function deletePin(idx: number){
   let positions = getPinPositions();
   positions.splice(idx, 1);
   initSlider(positions);
 }
 
-function addPin(newOffset){
+function addPin(newOffset: number){
   let positions = getPinPositions();
   if(newOffset <= 0 || newOffset >= stripHeight){
     return false;
@@ -285,7 +300,21 @@ function decorateSliders(){
     afterDiv.innerText = labelFormatter.to(sizeAfter);
 
     // create add pin buttons
-    for(const [parent, offset] of [[beforeDiv, -100], [afterDiv, 100]]){
+    type Side = {
+      parent: HTMLElement;
+      offset: number;
+    };
+    const sides: Side[] = [
+      {
+        parent: beforeDiv,
+        offset: -PIN_STEP,
+      },
+      {
+        parent: afterDiv,
+        offset: PIN_STEP,
+      }
+    ];
+    for(const {parent, offset} of sides){
       let addPinButton = document.createElement('button');
       addPinButton.setAttribute('class', 'add-pin pin-button');
       addPinButton.innerText = '➕';
@@ -314,7 +343,7 @@ function decorateSliders(){
           }
 
           console.debug("move pin %o (direction %o) from %o to %o", i, direction, pos, newPos);
-          slider.noUiSlider.setHandle(i, validPositions[posIdx], true);
+          sliderAPI.setHandle(i, validPositions[posIdx], true);
         }
       });
       moveButton.addEventListener('mousedown', (e) => e.stopPropagation());
@@ -324,7 +353,7 @@ function decorateSliders(){
   }
 }
 
-function getNearestBreak(pos){
+function getNearestBreak(pos: number){
   let before = null;
   for(const y of goodBreakPositions){
     if(y < pos){
@@ -349,8 +378,9 @@ function getNearestBreak(pos){
 
 function getInitialPins(){
   let pins = [];
-  const headerCount = document.querySelector('#header-count').valueAsNumber;
-  const footerCount = document.querySelector('#footer-count').valueAsNumber;
+  const getNumber = (selector: string) => getInput(selector).valueAsNumber;
+  const headerCount = getNumber('#header-count');
+  const footerCount = getNumber('#footer-count');
   const pageSize = getPageSize();
   let pos = 0;
   for(const [idx, y] of getImageBreaks().entries()){
@@ -372,7 +402,7 @@ function getInitialPins(){
   log(`added footer: ${footerPins}, ${footerHeight} px`);
 
   const warnDiff = getWarnDifference();
-  const enableSmartBreaks = document.querySelector('#smart-breaks').checked;
+  const enableSmartBreaks = getInput('#smart-breaks').checked;
   for(pos += pageSize; pos <= stripHeight - footerHeight; pos += pageSize){
     if(enableSmartBreaks){
       let nearest = getNearestBreak(pos);
@@ -417,24 +447,25 @@ function getImageBreaks(){
 }
 
 function destroySlider(){
-  let sliderObj = null;
-  if(slider){
-    sliderObj = slider.noUiSlider;
-    if(typeof sliderObj !== 'undefined' || sliderObj)
-      slider.noUiSlider.destroy();
+  if(sliderAPI){
+    sliderAPI.destroy();
   }
 }
 
-function initSlider(pins){
+function initSlider(pins: number[]){
   if(pins.length == 0){
     pins = [stripHeight];
   }
-  pins = pins.sort((a, b) => a - b);
+  pins = pins.sort((a: number, b: number) => a - b);
   destroySlider();
-  slider = document.getElementById('slider');
+  const tmp = document.getElementById('slider')
+  if (tmp)
+    slider = tmp;
+  else
+    throw "Internal error: #slider not found!";
   log(`pins: ${pins}`);
 
-  noUiSlider.create(slider, {
+  sliderAPI = noUiSlider.create(slider, {
     start: pins,
     connect: false,
     animate: false,
@@ -446,7 +477,7 @@ function initSlider(pins){
       'max': stripHeight
     }
   });
-  slider.noUiSlider.on('set', decorateSliders);
+  sliderAPI.on('set', decorateSliders);
   decorateSliders();
   // add guide lines to the sliders
   for(let origin of document.querySelectorAll('div.noUi-origin')){
@@ -458,11 +489,14 @@ function initSlider(pins){
   $('#pages-tab').tab('show');
 }
 
-function renderSlice(y1, y2){
+function renderSlice(y1: number, y2: number){
   let canvas = document.createElement('canvas');
   canvas.width = stripWidth;
   canvas.height = y2 - y1;
   let ctx = canvas.getContext('2d');
+  if (!ctx) {
+    throw "Error creating canvas context! Try a newer browser!";
+  }
   let offset = 0;
   let nextOffset = 0;
   for(let img of images){
@@ -478,7 +512,7 @@ function renderSlice(y1, y2){
   return canvas.toDataURL('image/png');
 }
 
-function dataURLtoBlob(dataURI) {
+function dataURLtoBlob(dataURI: string) {
   // convert base64/URLEncoded data component to raw binary data held in a string
   let byteString;
   if (dataURI.split(',')[0].indexOf('base64') >= 0){
@@ -499,7 +533,7 @@ function dataURLtoBlob(dataURI) {
   return new Blob([ia], {type:mimeString});
 }
 
-function downloadBlob(blob, name){
+function downloadBlob(blob: Blob, name: string){
   let a = document.createElement('a');
   a.download = name;
   a.href = URL.createObjectURL(blob);
@@ -510,22 +544,23 @@ function downloadBlob(blob, name){
   URL.revokeObjectURL(a.href);
 }
 
-function downloadDataURL(url, name){
+function downloadDataURL(url: string, name: string){
   let link = document.createElement('a');
   link.download = name;
   link.href = url;
   link.click();
 }
 
-function downloadSlice(y1, y2, name, downloadFunc){
+type DoneCallback = (blob: Blob, name: string) => void;
+function downloadSlice(y1: number, y2: number, name: string, downloadFunc: DoneCallback){
   log(`downloadSlice(${y1}, ${y2}, ${name})`);
   let slice = renderSlice(y1, y2)
   let blob = dataURLtoBlob(slice);
   downloadFunc(blob, name);
 }
 
-function sliceName(idx){
-  let prefixInput = document.querySelector('#fn-prefix');
+function sliceName(idx: number){
+  let prefixInput = getInput('#fn-prefix');
   let prefix = prefixInput.value;
   if(!prefix)
     prefix = DEFAULT_FILENAME_PREFIX;
@@ -533,7 +568,7 @@ function sliceName(idx){
   return prefix + idx.toString().padStart(2, '0') + '.png';
 }
 
-function renderSlices(sliceDoneFunc, doneFunc){
+function renderSlices(sliceDoneFunc: DoneCallback, doneFunc?: () => Promise<void>){
   $('#downloadingModal').modal('show');
   setTimeout(async () => {
     let positions = getPinPositions().concat(stripHeight);
@@ -563,40 +598,41 @@ document.addEventListener('DOMContentLoaded', () => {
     alert(`Unhandled exception:  ${event.reason}\n\nPlease reload the page!`);
     return false;
   });
-  imageContainer = document.querySelector('#image-container');
-  document.querySelector('#download-button').addEventListener('click', () => {
+  imageContainer = document.querySelector('#image-container') as HTMLElement;
+  (document.querySelector('#download-button') as HTMLElement).addEventListener('click', () => {
     renderSlices(downloadBlob);
   });
-  document.querySelector('#download-zip-button').addEventListener('click', () => {
+  (document.querySelector('#download-zip-button') as HTMLElement).addEventListener('click', () => {
     const zip = new JSZip();
-    const sliceDoneFunc = (blob, name) => zip.file(name, blob);
+    const sliceDoneFunc = (blob: Blob, name: string) => zip.file(name, blob);
     const doneFunc = async () => {
       let content = await zip.generateAsync({type: 'blob', compression: 'STORE'});
       downloadBlob(content, 'compiled.zip');
     };
     renderSlices(sliceDoneFunc, doneFunc);
   });
-  document.querySelector('#reset-to-spacing').addEventListener('click', (e) => {
+  (document.querySelector('#reset-to-spacing') as HTMLElement).addEventListener('click', (e) => {
     if(stripHeight > 0)
       initSlider(getInitialPins());
     e.preventDefault();
     return false;
   });
-  document.querySelector('#reset-to-breaks').addEventListener('click', (e) => {
+  (document.querySelector('#reset-to-breaks') as HTMLElement).addEventListener('click', (e) => {
     if(stripHeight > 0)
       initSlider(getImageBreaks());
     e.preventDefault();
     return false;
   });
-  const pageSizeInput = document.querySelector('#page-size-input');
+  const pageSizeInput = getInput('#page-size-input');
   if(pageSizeInput.validity.valueMissing)
-    pageSizeInput.value = DEFAULT_PAGE_SIZE;
-  const pageSizeDifferenceInput = document.querySelector('#page-size-difference-input');
+    pageSizeInput.value = '' + DEFAULT_PAGE_SIZE;
+  const pageSizeDifferenceInput = getInput('#page-size-difference-input');
   if(pageSizeDifferenceInput.validity.valueMissing)
-    pageSizeDifferenceInput.value = DEFAULT_WARN_DIFFERENCE;
-  const uploadInput = document.querySelector('#upload-input');
+    pageSizeDifferenceInput.value = '' + DEFAULT_WARN_DIFFERENCE;
+  const uploadInput = getInput('#upload-input');
   uploadInput.addEventListener('change', () => {
-    loadImages(uploadInput.files);
+    if (uploadInput.files)
+      loadImages(uploadInput.files);
   });
-  loadImages(uploadInput.files);
+  loadImages(uploadInput.files || []);
 });
