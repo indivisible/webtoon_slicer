@@ -7,14 +7,14 @@ const DEFAULT_WARN_DIFFERENCE = 1000;
 const PIN_STEP = 100;
 const DEFAULT_FILENAME_PREFIX = 'page_';
 
-var images: HTMLImageElement[] = [];
-var goodBreakPositions: number[] = [];
-var stripHeight = 0;
-var stripWidth = 0;
-var imageContainer: HTMLElement;
-var slider: HTMLElement;
-var sliderAPI: noUiSlider.API;
-var debugLog = "";
+let images: HTMLImageElement[] = [];
+let goodBreakPositions: number[] = [];
+let stripHeight = 0;
+let stripWidth = 0;
+let imageContainer: HTMLElement;
+let slider: HTMLElement;
+let sliderAPI: noUiSlider.API;
+let debugLog = "";
 const labelFormatter = {
   to: (num: number) => Math.floor(num).toString().replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1,')
 };
@@ -49,13 +49,13 @@ function log(value: any){
 
 function loadImage(file: File): Promise<HTMLImageElement> {
   return new Promise((resolve, reject) => {
-    let img = new Image();
+    const img = new Image();
     img.addEventListener("load", () => resolve(img));
     img.addEventListener("error", err => reject(err));
     img.dataset["name"] = file.name;
     img.src = URL.createObjectURL(file);
   });
-};
+}
 
 // find monochromatic regions of the strip and designate their starts
 // and ends as good points to insert a break
@@ -66,7 +66,7 @@ function calculateBreaks(){
   let prevComplex = true;
   let prevColor: Pixel = [0, 0, 0];
   let imageStartY = 0;
-  let canvas = document.createElement('canvas');
+  const canvas = document.createElement('canvas');
   // RGB pixel comparision (ignores alpha)
   const comparePixel = (a: Pixel, b: Pixel) => {
     return a[0] === b[0] && a[1] === b[1] && a[2] === b[2];
@@ -84,10 +84,10 @@ function calculateBreaks(){
     const data = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
     for (let rowBase=0, unscaledY=0; rowBase < data.length; rowBase += img.naturalWidth * 4, unscaledY++) {
       let complex = false;
-      let color = data.slice(rowBase, rowBase+3);
+      const color = data.slice(rowBase, rowBase+3);
       // start from the 2nd pixel (pos = 4)
       for(let pos = 4; pos < stripWidth*4; pos += 4){
-        let px = data.slice(rowBase+pos, rowBase+pos+3);
+        const px = data.slice(rowBase+pos, rowBase+pos+3);
         if(!comparePixel(color, px)){
           complex = true;
           break;
@@ -155,7 +155,7 @@ async function loadImages(files: FileList | []): Promise<void> {
     images = await Promise.all(Array.from(files).map(loadImage));
     stripWidth = getBestWidth(images);
     stripHeight = 0;
-    for(let img of images){
+    for(const img of images){
       const sizes = getScaledSize(img);
       img.width = sizes.width;
       img.height = sizes.height;
@@ -185,11 +185,11 @@ function updateSliceSizes(positions: number[]){
     ul.innerHTML = '<li>(no pages)</li>';
     return;
   }
-  let frag = new DocumentFragment();
+  const frag = new DocumentFragment();
   let prevPosition = 0;
-  let makeDownloader = (y1: number, y2: number, pageNum: number) => {
+  const makeDownloader = (y1: number, y2: number, pageNum: number) => {
     return (evt: Event) => {
-      let name = sliceName(pageNum);
+      const name = sliceName(pageNum);
       downloadSlice(y1, y2, name, downloadBlob);
       evt.preventDefault();
       return false;
@@ -197,9 +197,9 @@ function updateSliceSizes(positions: number[]){
   }
   const maxDifference = getWarnDifference();
   for(const [idx, position] of positions.concat(stripHeight).entries()){
-    let size = position - prevPosition;
-    let li = document.createElement('li');
-    let jumpLink = document.createElement('a');
+    const size = position - prevPosition;
+    const li = document.createElement('li');
+    const jumpLink = document.createElement('a');
     li.appendChild(jumpLink);
     li.appendChild(document.createTextNode(' '));
     jumpLink.href = '#';
@@ -216,11 +216,11 @@ function updateSliceSizes(positions: number[]){
       evt.preventDefault();
       return false;
     });
-    let diff = Math.abs(size - getPageSize());
+    const diff = Math.abs(size - getPageSize());
     if(diff >= maxDifference){
       li.setAttribute('class', 'bad-size');
     }
-    let a = document.createElement('a');
+    const a = document.createElement('a');
     a.addEventListener('click', makeDownloader(prevPosition, position, idx + 1));
     a.setAttribute('href', '#');
     a.innerText = 'download';
@@ -233,7 +233,7 @@ function updateSliceSizes(positions: number[]){
 }
 
 function getPinPositions(){
-  let values = sliderAPI.get();
+  const values = sliderAPI.get();
   if(Array.isArray(values)){
     return values.map((v) => parseFloat(v as string));
   }else{
@@ -242,13 +242,13 @@ function getPinPositions(){
 }
 
 function deletePin(idx: number){
-  let positions = getPinPositions();
+  const positions = getPinPositions();
   positions.splice(idx, 1);
   initSlider(positions);
 }
 
 function addPin(newOffset: number){
-  let positions = getPinPositions();
+  const positions = getPinPositions();
   if(newOffset <= 0 || newOffset >= stripHeight){
     return false;
   }
@@ -260,22 +260,22 @@ function addPin(newOffset: number){
 }
 
 function decorateSliders(){
-  let positions = getPinPositions();
+  const positions = getPinPositions();
   updateSliceSizes(positions);
   let lastPosition = 0;
-  for(let [i, tooltip] of Array.from(document.querySelectorAll('div.noUi-tooltip')).entries()){
-    let pos = positions[i];
+  for(const [i, tooltip] of Array.from(document.querySelectorAll('div.noUi-tooltip')).entries()){
+    const pos = positions[i];
     tooltip.innerHTML = labelFormatter.to(pos);
-    let sizeBefore = pos - lastPosition;
+    const sizeBefore = pos - lastPosition;
     lastPosition = pos;
     let sizeAfter = stripHeight - pos;
     if(i < positions.length - 1){
       sizeAfter = positions[i + 1] - pos;
     }
-    let extra = new DocumentFragment();
+    const extra = new DocumentFragment();
 
     // delete pin button
-    let removeButton = document.createElement('button');
+    const removeButton = document.createElement('button');
     removeButton.setAttribute('class', 'delete-pin pin-button');
     extra.appendChild(removeButton);
     removeButton.innerText = '🗑️';
@@ -289,9 +289,9 @@ function decorateSliders(){
     }
 
     // size of segments above and below the ruler
-    let beforeDiv = document.createElement('div');
+    const beforeDiv = document.createElement('div');
     beforeDiv.setAttribute('class', 'tooltip-before');
-    let afterDiv = document.createElement('div');
+    const afterDiv = document.createElement('div');
     afterDiv.setAttribute('class', 'tooltip-after');
     extra.appendChild(beforeDiv);
     extra.appendChild(afterDiv);
@@ -315,7 +315,7 @@ function decorateSliders(){
       }
     ];
     for(const {parent, offset} of sides){
-      let addPinButton = document.createElement('button');
+      const addPinButton = document.createElement('button');
       addPinButton.setAttribute('class', 'add-pin pin-button');
       addPinButton.innerText = '➕';
       addPinButton.title = "Add new cut";
@@ -391,7 +391,7 @@ function getInitialPins(){
     pos = y;
   }
   let footerHeight = 0;
-  let footerPins = [];
+  const footerPins = [];
   for(const [idx, y] of getImageBreaks().slice().reverse().entries()){
     if(idx >= footerCount){
       break;
@@ -405,7 +405,7 @@ function getInitialPins(){
   const enableSmartBreaks = getInput('#smart-breaks').checked;
   for(pos += pageSize; pos <= stripHeight - footerHeight; pos += pageSize){
     if(enableSmartBreaks){
-      let nearest = getNearestBreak(pos);
+      const nearest = getNearestBreak(pos);
       if(nearest && Math.abs(pos - nearest) <= warnDiff){
         pos = nearest;
       }
@@ -433,7 +433,7 @@ function getInitialPins(){
 }
 
 function getImageBreaks(){
-  let breaks = [];
+  const breaks = [];
   let pos = 0;
   for(const img of images){
     const size = getScaledSize(img);
@@ -480,8 +480,8 @@ function initSlider(pins: number[]){
   sliderAPI.on('set', decorateSliders);
   decorateSliders();
   // add guide lines to the sliders
-  for(let origin of document.querySelectorAll('div.noUi-origin')){
-    let ruler = document.createElement('div');
+  for(const origin of document.querySelectorAll('div.noUi-origin')){
+    const ruler = document.createElement('div');
     ruler.setAttribute('class', 'ruler');
     origin.appendChild(ruler);
   }
@@ -490,16 +490,16 @@ function initSlider(pins: number[]){
 }
 
 function renderSlice(y1: number, y2: number){
-  let canvas = document.createElement('canvas');
+  const canvas = document.createElement('canvas');
   canvas.width = stripWidth;
   canvas.height = y2 - y1;
-  let ctx = canvas.getContext('2d');
+  const ctx = canvas.getContext('2d');
   if (!ctx) {
     throw "Error creating canvas context! Try a newer browser!";
   }
   let offset = 0;
   let nextOffset = 0;
-  for(let img of images){
+  for(const img of images){
     const size = getScaledSize(img);
     offset = nextOffset;
     nextOffset = offset + size.height;
@@ -522,10 +522,10 @@ function dataURLtoBlob(dataURI: string) {
   }
 
   // separate out the mime component
-  let mimeString = dataURI.split(',')[0].split(':')[1].split(';')[0];
+  const mimeString = dataURI.split(',')[0].split(':')[1].split(';')[0];
 
   // write the bytes of the string to a typed array
-  let ia = new Uint8Array(byteString.length);
+  const ia = new Uint8Array(byteString.length);
   for (let i = 0; i < byteString.length; i++) {
     ia[i] = byteString.charCodeAt(i);
   }
@@ -534,18 +534,18 @@ function dataURLtoBlob(dataURI: string) {
 }
 
 function downloadBlob(blob: Blob, name: string){
-  let a = document.createElement('a');
+  const a = document.createElement('a');
   a.download = name;
   a.href = URL.createObjectURL(blob);
   a.dataset.downloadurl = [blob.type, a.download, a.href].join(':');
-  let e = document.createEvent('MouseEvents');
+  const e = document.createEvent('MouseEvents');
   e.initMouseEvent('click', true, false, window, 0, 0, 0, 0, 0, false, false, false, false, 0, null);
   a.dispatchEvent(e);
   URL.revokeObjectURL(a.href);
 }
 
 function downloadDataURL(url: string, name: string){
-  let link = document.createElement('a');
+  const link = document.createElement('a');
   link.download = name;
   link.href = url;
   link.click();
@@ -554,13 +554,13 @@ function downloadDataURL(url: string, name: string){
 type DoneCallback = (blob: Blob, name: string) => void;
 function downloadSlice(y1: number, y2: number, name: string, downloadFunc: DoneCallback){
   log(`downloadSlice(${y1}, ${y2}, ${name})`);
-  let slice = renderSlice(y1, y2)
-  let blob = dataURLtoBlob(slice);
+  const slice = renderSlice(y1, y2)
+  const blob = dataURLtoBlob(slice);
   downloadFunc(blob, name);
 }
 
 function sliceName(idx: number){
-  let prefixInput = getInput('#fn-prefix');
+  const prefixInput = getInput('#fn-prefix');
   let prefix = prefixInput.value;
   if(!prefix)
     prefix = DEFAULT_FILENAME_PREFIX;
@@ -571,13 +571,13 @@ function sliceName(idx: number){
 function renderSlices(sliceDoneFunc: DoneCallback, doneFunc?: () => Promise<void>){
   $('#downloadingModal').modal('show');
   setTimeout(async () => {
-    let positions = getPinPositions().concat(stripHeight);
+    const positions = getPinPositions().concat(stripHeight);
     let start = 0;
     let num = 1;
-    for(let y of positions){
+    for(const y of positions){
       if(start == y)
         continue;
-      let name = sliceName(num);
+      const name = sliceName(num);
       num++;
       downloadSlice(start, y, name, sliceDoneFunc);
       start = y;
@@ -606,7 +606,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const zip = new JSZip();
     const sliceDoneFunc = (blob: Blob, name: string) => zip.file(name, blob);
     const doneFunc = async () => {
-      let content = await zip.generateAsync({type: 'blob', compression: 'STORE'});
+      const content = await zip.generateAsync({type: 'blob', compression: 'STORE'});
       downloadBlob(content, 'compiled.zip');
     };
     renderSlices(sliceDoneFunc, doneFunc);
