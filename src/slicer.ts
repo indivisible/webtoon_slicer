@@ -25,21 +25,21 @@ function getInput(selector: string): HTMLInputElement {
 
 function getInputNumber(selector: string, defaultValue: number) {
   const input = getInput(selector);
-  if(input && input.validity.valid){
+  if (input && input.validity.valid) {
     return input.valueAsNumber;
   }
   return defaultValue;
 }
 
-function getPageSize(){
+function getPageSize() {
   return getInputNumber('#page-size-input', DEFAULT_PAGE_SIZE);
 }
 
-function getWarnDifference(){
+function getWarnDifference() {
   return getInputNumber('#page-size-difference-input', DEFAULT_WARN_DIFFERENCE);
 }
 
-function log(value: any){
+function log(value: any) {
   console.log(value);
   debugLog += '\n' + value;
   const elem = document.querySelector('#log') as HTMLElement;
@@ -59,7 +59,7 @@ function loadImage(file: File): Promise<HTMLImageElement> {
 
 // find monochromatic regions of the strip and designate their starts
 // and ends as good points to insert a break
-function calculateBreaks(){
+function calculateBreaks() {
   type Pixel = number[] | Uint8ClampedArray;
   goodBreakPositions = [];
   // "complex" means the line is not monochromatic
@@ -71,7 +71,7 @@ function calculateBreaks(){
   const comparePixel = (a: Pixel, b: Pixel) => {
     return a[0] === b[0] && a[1] === b[1] && a[2] === b[2];
   };
-  for(const img of images){
+  for (const img of images) {
     const size = getScaledSize(img);
     canvas.width = img.naturalWidth;
     canvas.height = img.naturalHeight;
@@ -82,22 +82,22 @@ function calculateBreaks(){
     ctx.drawImage(img, 0, 0);
     // image as an RGBA array
     const data = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
-    for (let rowBase=0, unscaledY=0; rowBase < data.length; rowBase += img.naturalWidth * 4, unscaledY++) {
+    for (let rowBase = 0, unscaledY = 0; rowBase < data.length; rowBase += img.naturalWidth * 4, unscaledY++) {
       let complex = false;
-      const color = data.slice(rowBase, rowBase+3);
+      const color = data.slice(rowBase, rowBase + 3);
       // start from the 2nd pixel (pos = 4)
-      for(let pos = 4; pos < stripWidth*4; pos += 4){
-        const px = data.slice(rowBase+pos, rowBase+pos+3);
-        if(!comparePixel(color, px)){
+      for (let pos = 4; pos < stripWidth * 4; pos += 4) {
+        const px = data.slice(rowBase + pos, rowBase + pos + 3);
+        if (!comparePixel(color, px)) {
           complex = true;
           break;
         }
       }
       const y = imageStartY + Math.round(unscaledY * size.scale);
-      if(complex != prevComplex){
+      if (complex != prevComplex) {
         // it's either the start or end of a monochromatic region
         goodBreakPositions.push(y);
-      }else if(!complex && !comparePixel(color, prevColor)){
+      } else if (!complex && !comparePixel(color, prevColor)) {
         // we're at the border of 2 different colored regions
         goodBreakPositions.push(y);
       }
@@ -108,7 +108,7 @@ function calculateBreaks(){
   }
 }
 
-function getBestWidth (images: HTMLImageElement[]) {
+function getBestWidth(images: HTMLImageElement[]) {
   const widthCounts: {[width: number]: number} = {};
   let maxCount = 0;
   let bestWidth = 0;
@@ -126,7 +126,7 @@ function getBestWidth (images: HTMLImageElement[]) {
   return bestWidth;
 }
 
-function getScaledSize (img: HTMLImageElement) {
+function getScaledSize(img: HTMLImageElement) {
   const scale = stripWidth / img.naturalWidth;
   return {
     width: stripWidth,
@@ -139,7 +139,7 @@ async function loadImages(files: FileList | []): Promise<void> {
   $('#loadingModal').modal('show');
   imageContainer.innerHTML = '';
   destroySlider();
-  for(const img of images){
+  for (const img of images) {
     URL.revokeObjectURL(img.src);
   }
   images = [];
@@ -155,7 +155,7 @@ async function loadImages(files: FileList | []): Promise<void> {
     images = await Promise.all(Array.from(files).map(loadImage));
     stripWidth = getBestWidth(images);
     stripHeight = 0;
-    for(const img of images){
+    for (const img of images) {
       const sizes = getScaledSize(img);
       img.width = sizes.width;
       img.height = sizes.height;
@@ -179,7 +179,7 @@ async function loadImages(files: FileList | []): Promise<void> {
   }
 }
 
-function updateSliceSizes(positions: number[]){
+function updateSliceSizes(positions: number[]) {
   const ul = document.querySelector('#slice-sizes') as HTMLElement;
   if (positions.length === 0) {
     ul.innerHTML = '<li>(no pages)</li>';
@@ -196,7 +196,7 @@ function updateSliceSizes(positions: number[]){
     }
   }
   const maxDifference = getWarnDifference();
-  for(const [idx, position] of positions.concat(stripHeight).entries()){
+  for (const [idx, position] of positions.concat(stripHeight).entries()) {
     const size = position - prevPosition;
     const li = document.createElement('li');
     const jumpLink = document.createElement('a');
@@ -207,7 +207,7 @@ function updateSliceSizes(positions: number[]){
     jumpLink.addEventListener('click', (evt) => {
       const origins = slider.getElementsByClassName('noUi-origin');
       let origin = origins[idx];
-      if(!origin){
+      if (!origin) {
         origin = origins[origins.length - 1];
       }
       const absTop = origin.getBoundingClientRect().top + window.pageYOffset;
@@ -217,7 +217,7 @@ function updateSliceSizes(positions: number[]){
       return false;
     });
     const diff = Math.abs(size - getPageSize());
-    if(diff >= maxDifference){
+    if (diff >= maxDifference) {
       li.setAttribute('class', 'bad-size');
     }
     const a = document.createElement('a');
@@ -232,44 +232,44 @@ function updateSliceSizes(positions: number[]){
   ul.appendChild(frag);
 }
 
-function getPinPositions(){
+function getPinPositions() {
   const values = sliderAPI.get();
-  if(Array.isArray(values)){
+  if (Array.isArray(values)) {
     return values.map((v) => parseFloat(v as string));
-  }else{
+  } else {
     return [parseFloat(values as string)];
   }
 }
 
-function deletePin(idx: number){
+function deletePin(idx: number) {
   const positions = getPinPositions();
   positions.splice(idx, 1);
   initSlider(positions);
 }
 
-function addPin(newOffset: number){
+function addPin(newOffset: number) {
   const positions = getPinPositions();
-  if(newOffset <= 0 || newOffset >= stripHeight){
+  if (newOffset <= 0 || newOffset >= stripHeight) {
     return false;
   }
-  if(positions.includes(newOffset)){
+  if (positions.includes(newOffset)) {
     return false;
   }
   positions.push(newOffset);
   initSlider(positions);
 }
 
-function decorateSliders(){
+function decorateSliders() {
   const positions = getPinPositions();
   updateSliceSizes(positions);
   let lastPosition = 0;
-  for(const [i, tooltip] of Array.from(document.querySelectorAll('div.noUi-tooltip')).entries()){
+  for (const [i, tooltip] of Array.from(document.querySelectorAll('div.noUi-tooltip')).entries()) {
     const pos = positions[i];
     tooltip.innerHTML = labelFormatter.to(pos);
     const sizeBefore = pos - lastPosition;
     lastPosition = pos;
     let sizeAfter = stripHeight - pos;
-    if(i < positions.length - 1){
+    if (i < positions.length - 1) {
       sizeAfter = positions[i + 1] - pos;
     }
     const extra = new DocumentFragment();
@@ -281,9 +281,9 @@ function decorateSliders(){
     removeButton.innerText = '🗑️';
 
     // do not allow the last one to be deleted
-    if(positions.length <= 1){
+    if (positions.length <= 1) {
       removeButton.setAttribute('disabled', 'true');
-    }else{
+    } else {
       removeButton.addEventListener('click', () => deletePin(i));
       removeButton.addEventListener('mousedown', (e) => e.stopPropagation());
     }
@@ -314,7 +314,7 @@ function decorateSliders(){
         offset: PIN_STEP,
       }
     ];
-    for(const {parent, offset} of sides){
+    for (const {parent, offset} of sides) {
       const addPinButton = document.createElement('button');
       addPinButton.setAttribute('class', 'add-pin pin-button');
       addPinButton.innerText = '➕';
@@ -353,21 +353,21 @@ function decorateSliders(){
   }
 }
 
-function getNearestBreak(pos: number){
+function getNearestBreak(pos: number) {
   let before = null;
-  for(const y of goodBreakPositions){
-    if(y < pos){
+  for (const y of goodBreakPositions) {
+    if (y < pos) {
       before = y;
-    }else if(y == pos){
+    } else if (y == pos) {
       return y;
-    }else{
+    } else {
       // we are at the break just after the specified position
-      if(!before){
+      if (!before) {
         return y;
       }
       const distanceFromLast = (pos - before);
       const distanceToNext = (y - pos);
-      if(distanceFromLast <= distanceToNext){
+      if (distanceFromLast <= distanceToNext) {
         return before;
       }
       return y;
@@ -376,15 +376,15 @@ function getNearestBreak(pos: number){
   return before;
 }
 
-function getInitialPins(){
+function getInitialPins() {
   let pins = [];
   const getNumber = (selector: string) => getInput(selector).valueAsNumber;
   const headerCount = getNumber('#header-count');
   const footerCount = getNumber('#footer-count');
   const pageSize = getPageSize();
   let pos = 0;
-  for(const [idx, y] of getImageBreaks().entries()){
-    if(idx >= headerCount){
+  for (const [idx, y] of getImageBreaks().entries()) {
+    if (idx >= headerCount) {
       break;
     }
     pins.push(y);
@@ -392,8 +392,8 @@ function getInitialPins(){
   }
   let footerHeight = 0;
   const footerPins = [];
-  for(const [idx, y] of getImageBreaks().slice().reverse().entries()){
-    if(idx >= footerCount){
+  for (const [idx, y] of getImageBreaks().slice().reverse().entries()) {
+    if (idx >= footerCount) {
       break;
     }
     footerPins.unshift(y);
@@ -403,26 +403,26 @@ function getInitialPins(){
 
   const warnDiff = getWarnDifference();
   const enableSmartBreaks = getInput('#smart-breaks').checked;
-  for(pos += pageSize; pos <= stripHeight - footerHeight; pos += pageSize){
-    if(enableSmartBreaks){
+  for (pos += pageSize; pos <= stripHeight - footerHeight; pos += pageSize) {
+    if (enableSmartBreaks) {
       const nearest = getNearestBreak(pos);
-      if(nearest && Math.abs(pos - nearest) <= warnDiff){
+      if (nearest && Math.abs(pos - nearest) <= warnDiff) {
         pos = nearest;
       }
     }
     pins.push(pos);
   }
   // if the last page is too small, try to merge it with the page before
-  if(pins.length > 1){
+  if (pins.length > 1) {
     log(`pages before merge check: ${JSON.stringify(pins)}`)
     const lastPageHeight = stripHeight - footerHeight - pins[pins.length - 1];
     let secondToLastHeight = pins[pins.length - 1];
-    if(pins.length >= 2){
+    if (pins.length >= 2) {
       secondToLastHeight = pins[pins.length - 1] - pins[pins.length - 2];
     }
-    if(lastPageHeight < pageSize - warnDiff){
+    if (lastPageHeight < pageSize - warnDiff) {
       log(`Last page too small: ${lastPageHeight}, attempting merge with ${secondToLastHeight}`);
-      if(secondToLastHeight + lastPageHeight < pageSize + warnDiff){
+      if (secondToLastHeight + lastPageHeight < pageSize + warnDiff) {
         pins.pop();
         log('last page merged');
       }
@@ -432,28 +432,28 @@ function getInitialPins(){
   return pins;
 }
 
-function getImageBreaks(){
+function getImageBreaks() {
   const breaks = [];
   let pos = 0;
-  for(const img of images){
+  for (const img of images) {
     const size = getScaledSize(img);
     pos += size.height;
     breaks.push(pos);
   }
   // we don't want a pin at the end of the strip
-  if(breaks.length > 0)
+  if (breaks.length > 0)
     breaks.pop();
   return breaks;
 }
 
-function destroySlider(){
-  if(sliderAPI){
+function destroySlider() {
+  if (sliderAPI) {
     sliderAPI.destroy();
   }
 }
 
-function initSlider(pins: number[]){
-  if(pins.length == 0){
+function initSlider(pins: number[]) {
+  if (pins.length == 0) {
     pins = [stripHeight];
   }
   pins = pins.sort((a: number, b: number) => a - b);
@@ -480,7 +480,7 @@ function initSlider(pins: number[]){
   sliderAPI.on('set', decorateSliders);
   decorateSliders();
   // add guide lines to the sliders
-  for(const origin of document.querySelectorAll('div.noUi-origin')){
+  for (const origin of document.querySelectorAll('div.noUi-origin')) {
     const ruler = document.createElement('div');
     ruler.setAttribute('class', 'ruler');
     origin.appendChild(ruler);
@@ -489,7 +489,7 @@ function initSlider(pins: number[]){
   $('#pages-tab').tab('show');
 }
 
-function renderSlice(y1: number, y2: number){
+function renderSlice(y1: number, y2: number) {
   const canvas = document.createElement('canvas');
   canvas.width = stripWidth;
   canvas.height = y2 - y1;
@@ -499,13 +499,13 @@ function renderSlice(y1: number, y2: number){
   }
   let offset = 0;
   let nextOffset = 0;
-  for(const img of images){
+  for (const img of images) {
     const size = getScaledSize(img);
     offset = nextOffset;
     nextOffset = offset + size.height;
-    if(offset + size.height < y1)
+    if (offset + size.height < y1)
       continue;
-    if(offset > y2)
+    if (offset > y2)
       break;
     ctx.drawImage(img, 0, offset - y1, size.width, size.height);
   }
@@ -515,9 +515,9 @@ function renderSlice(y1: number, y2: number){
 function dataURLtoBlob(dataURI: string) {
   // convert base64/URLEncoded data component to raw binary data held in a string
   let byteString;
-  if (dataURI.split(',')[0].indexOf('base64') >= 0){
+  if (dataURI.split(',')[0].indexOf('base64') >= 0) {
     byteString = atob(dataURI.split(',')[1]);
-  }else{
+  } else {
     byteString = unescape(dataURI.split(',')[1]);
   }
 
@@ -530,10 +530,10 @@ function dataURLtoBlob(dataURI: string) {
     ia[i] = byteString.charCodeAt(i);
   }
 
-  return new Blob([ia], {type:mimeString});
+  return new Blob([ia], {type: mimeString});
 }
 
-function downloadBlob(blob: Blob, name: string){
+function downloadBlob(blob: Blob, name: string) {
   const a = document.createElement('a');
   a.download = name;
   a.href = URL.createObjectURL(blob);
@@ -544,7 +544,7 @@ function downloadBlob(blob: Blob, name: string){
   URL.revokeObjectURL(a.href);
 }
 
-function downloadDataURL(url: string, name: string){
+function downloadDataURL(url: string, name: string) {
   const link = document.createElement('a');
   link.download = name;
   link.href = url;
@@ -552,37 +552,37 @@ function downloadDataURL(url: string, name: string){
 }
 
 type DoneCallback = (blob: Blob, name: string) => void;
-function downloadSlice(y1: number, y2: number, name: string, downloadFunc: DoneCallback){
+function downloadSlice(y1: number, y2: number, name: string, downloadFunc: DoneCallback) {
   log(`downloadSlice(${y1}, ${y2}, ${name})`);
   const slice = renderSlice(y1, y2)
   const blob = dataURLtoBlob(slice);
   downloadFunc(blob, name);
 }
 
-function sliceName(idx: number){
+function sliceName(idx: number) {
   const prefixInput = getInput('#fn-prefix');
   let prefix = prefixInput.value;
-  if(!prefix)
+  if (!prefix)
     prefix = DEFAULT_FILENAME_PREFIX;
 
   return prefix + idx.toString().padStart(2, '0') + '.png';
 }
 
-function renderSlices(sliceDoneFunc: DoneCallback, doneFunc?: () => Promise<void>){
+function renderSlices(sliceDoneFunc: DoneCallback, doneFunc?: () => Promise<void>) {
   $('#downloadingModal').modal('show');
   setTimeout(async () => {
     const positions = getPinPositions().concat(stripHeight);
     let start = 0;
     let num = 1;
-    for(const y of positions){
-      if(start == y)
+    for (const y of positions) {
+      if (start == y)
         continue;
       const name = sliceName(num);
       num++;
       downloadSlice(start, y, name, sliceDoneFunc);
       start = y;
     }
-    if(doneFunc){
+    if (doneFunc) {
       await doneFunc();
     }
     $('#downloadingModal').modal('hide');
@@ -612,22 +612,22 @@ document.addEventListener('DOMContentLoaded', () => {
     renderSlices(sliceDoneFunc, doneFunc);
   });
   (document.querySelector('#reset-to-spacing') as HTMLElement).addEventListener('click', (e) => {
-    if(stripHeight > 0)
+    if (stripHeight > 0)
       initSlider(getInitialPins());
     e.preventDefault();
     return false;
   });
   (document.querySelector('#reset-to-breaks') as HTMLElement).addEventListener('click', (e) => {
-    if(stripHeight > 0)
+    if (stripHeight > 0)
       initSlider(getImageBreaks());
     e.preventDefault();
     return false;
   });
   const pageSizeInput = getInput('#page-size-input');
-  if(pageSizeInput.validity.valueMissing)
+  if (pageSizeInput.validity.valueMissing)
     pageSizeInput.value = '' + DEFAULT_PAGE_SIZE;
   const pageSizeDifferenceInput = getInput('#page-size-difference-input');
-  if(pageSizeDifferenceInput.validity.valueMissing)
+  if (pageSizeDifferenceInput.validity.valueMissing)
     pageSizeDifferenceInput.value = '' + DEFAULT_WARN_DIFFERENCE;
   const uploadInput = getInput('#upload-input');
   uploadInput.addEventListener('change', () => {
