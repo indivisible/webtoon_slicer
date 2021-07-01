@@ -544,13 +544,6 @@ function downloadBlob(blob: Blob, name: string) {
   URL.revokeObjectURL(a.href);
 }
 
-function downloadDataURL(url: string, name: string) {
-  const link = document.createElement('a');
-  link.download = name;
-  link.href = url;
-  link.click();
-}
-
 type DownloadCallback = (blob: Blob, name: string) => void;
 function downloadSlice(y1: number, y2: number, name: string, downloadFunc: DownloadCallback) {
   log(`downloadSlice(${y1}, ${y2}, ${name})`);
