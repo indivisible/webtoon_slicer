@@ -68,6 +68,12 @@ div.noUi-handle {
   padding: 0;
 }
 
+.placeholder-text {
+  position: absolute;
+  width: 100%;
+  z-index: -1;
+}
+
 #image-container {
   padding: 0;
   margin: 0;
