@@ -190,7 +190,9 @@ function updateSliceSizes(positions: number[]) {
   const makeDownloader = (y1: number, y2: number, pageNum: number) => {
     return (evt: Event) => {
       const name = sliceName(pageNum);
-      downloadSlice(y1, y2, name, downloadBlob);
+      withDownloadDialog(downloadSlice(y1, y2).then((blob) => {
+        downloadBlob(blob, name)
+      }));
       evt.preventDefault();
       return false;
     }
@@ -509,7 +511,7 @@ function renderSlice(y1: number, y2: number) {
       break;
     ctx.drawImage(img, 0, offset - y1, size.width, size.height);
   }
-  return canvas.toDataURL('image/png');
+  return canvas;
 }
 
 function dataURLtoBlob(dataURI: string) {
@@ -545,11 +547,18 @@ function downloadBlob(blob: Blob, name: string) {
 }
 
 type DownloadCallback = (blob: Blob, name: string) => void;
-function downloadSlice(y1: number, y2: number, name: string, downloadFunc: DownloadCallback) {
-  log(`downloadSlice(${y1}, ${y2}, ${name})`);
+function downloadSlice(y1: number, y2: number): Promise<Blob> {
+  log(`downloadSlice(${y1}, ${y2})`);
   const slice = renderSlice(y1, y2)
-  const blob = dataURLtoBlob(slice);
-  downloadFunc(blob, name);
+  return new Promise((resolve, reject) => {
+    slice.toBlob((blob) => {
+      if (!blob) {
+        reject("Error getting getting blob from canvas!");
+        return;
+      }
+      resolve(blob);
+    }, "image/png");
+  });
 }
 
 function sliceName(idx: number) {
@@ -561,25 +570,25 @@ function sliceName(idx: number) {
   return prefix + idx.toString().padStart(2, '0') + '.png';
 }
 
-function renderSlices(sliceDoneFunc: DownloadCallback, doneFunc?: () => Promise<void>) {
+async function renderSlices(sliceDoneFunc: DownloadCallback) {
+  const positions = getPinPositions().concat(stripHeight);
+  let start = 0;
+  let num = 1;
+  for (const y of positions) {
+    if (start == y)
+      continue;
+    const name = sliceName(num);
+    num++;
+    const blob = await downloadSlice(start, y);
+    sliceDoneFunc(blob, name);
+    start = y;
+  }
+}
+
+async function withDownloadDialog(promise: PromiseLike<unknown>) {
   $('#downloadingModal').modal('show');
-  setTimeout(async () => {
-    const positions = getPinPositions().concat(stripHeight);
-    let start = 0;
-    let num = 1;
-    for (const y of positions) {
-      if (start == y)
-        continue;
-      const name = sliceName(num);
-      num++;
-      downloadSlice(start, y, name, sliceDoneFunc);
-      start = y;
-    }
-    if (doneFunc) {
-      await doneFunc();
-    }
-    $('#downloadingModal').modal('hide');
-  }, 100);
+  await promise;
+  $('#downloadingModal').modal('hide');
 }
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -593,16 +602,15 @@ document.addEventListener('DOMContentLoaded', () => {
   });
   imageContainer = document.querySelector('#image-container') as HTMLElement;
   (document.querySelector('#download-button') as HTMLElement).addEventListener('click', () => {
-    renderSlices(downloadBlob);
+    withDownloadDialog(renderSlices(downloadBlob));
   });
   (document.querySelector('#download-zip-button') as HTMLElement).addEventListener('click', () => {
     const zip = new JSZip();
     const sliceDoneFunc = (blob: Blob, name: string) => zip.file(name, blob);
-    const doneFunc = async () => {
+    withDownloadDialog(renderSlices(sliceDoneFunc).then(async () => {
       const content = await zip.generateAsync({type: 'blob', compression: 'STORE'});
       downloadBlob(content, 'compiled.zip');
-    };
-    renderSlices(sliceDoneFunc, doneFunc);
+    }));
   });
   (document.querySelector('#reset-to-spacing') as HTMLElement).addEventListener('click', (e) => {
     if (stripHeight > 0)
