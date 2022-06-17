@@ -60,7 +60,7 @@
     "rules": {}
   },
   "dependencies": {
-    "jszip": "^3.6.0",
+    "jszip": "^3.7.0",
     "nouislider": "^15.2.0"
   }
 }
