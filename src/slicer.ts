@@ -39,7 +39,7 @@ function getWarnDifference() {
   return getInputNumber('#page-size-difference-input', DEFAULT_WARN_DIFFERENCE);
 }
 
-function log(value: any) {
+function log(value: unknown) {
   console.log(value);
   debugLog += '\n' + value;
   const elem = document.querySelector('#log') as HTMLElement;
